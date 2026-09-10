@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { MapPin } from 'lucide-react';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
@@ -65,9 +66,13 @@ export default function LocationPicker({ lat, lng, onChange }) {
           fontSize: 15,
           marginBottom: 12,
           cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
         }}
       >
-        📍 Use My Current Location
+     <MapPin size={18} /> Use My Current Location
       </button>
 
       <div style={{ height: 260, borderRadius: 14, overflow: 'hidden' }}>

@@ -3,6 +3,7 @@
 import PhotoUpload from './PhotoUpload';
 import { useState } from 'react';
 import LocationPicker from './LocationPicker';
+import { CheckCircle2 } from 'lucide-react';
 
 const inputStyle = {
   width: '100%',
@@ -50,6 +51,14 @@ export default function RegisterClient({ token }) {
     licenseImageUrl: '',
     latitude: null,
     longitude: null,
+    guarantorFullName: '',
+    guarantorPhone: '',
+    guarantorEmail: '',
+    guarantorAddress: '',
+    guarantorGhanaIdNumber: '',
+    guarantorGhanaIdImageUrl: '',
+    guarantorLatitude: null,
+    guarantorLongitude: null,
   });
 
   const update = (field) => (e) => {
@@ -113,12 +122,139 @@ export default function RegisterClient({ token }) {
               onChange={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
             />
 
-            <button onClick={() => setStep(1)} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginBottom: 10 }}>
+            <button onClick={() => setStep(3)} style={buttonStyle}>
+              Next: Guarantor Details
+            </button>
+            <button onClick={() => setStep(1)} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
               Back
             </button>
           </>
         )}
+
+        {step === 3 && (
+          <>
+            <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Guarantor Details</h1>
+
+            <label style={labelStyle}>Guarantor Full Name</label>
+            <input style={inputStyle} value={form.guarantorFullName} onChange={update('guarantorFullName')} placeholder="e.g. Abena Owusu" />
+
+            <label style={labelStyle}>Guarantor Phone Number</label>
+            <input style={inputStyle} value={form.guarantorPhone} onChange={update('guarantorPhone')} placeholder="+233 20 000 0000" />
+
+            <label style={labelStyle}>Guarantor Email Address</label>
+            <input style={inputStyle} type="email" value={form.guarantorEmail} onChange={update('guarantorEmail')} placeholder="guarantor@example.com" />
+
+            <label style={labelStyle}>Guarantor Residential Address</label>
+            <input style={inputStyle} value={form.guarantorAddress} onChange={update('guarantorAddress')} placeholder="House number, area, city" />
+
+            <label style={labelStyle}>Guarantor Ghana Card Number</label>
+            <input style={inputStyle} value={form.guarantorGhanaIdNumber} onChange={update('guarantorGhanaIdNumber')} placeholder="GHA-000000000-0" />
+
+            <PhotoUpload
+              token={token}
+              label="Guarantor Ghana Card Photo"
+              onUploaded={(url) => setForm((f) => ({ ...f, guarantorGhanaIdImageUrl: url }))}
+            />
+
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 20, marginBottom: 10 }}>Guarantor's Location</h2>
+            <LocationPicker
+              lat={form.guarantorLatitude}
+              lng={form.guarantorLongitude}
+              onChange={(lat, lng) => setForm((f) => ({ ...f, guarantorLatitude: lat, guarantorLongitude: lng }))}
+            />
+
+            <button onClick={() => setStep(4)} style={buttonStyle}>
+              Next: Review & Submit
+            </button>
+            <button onClick={() => setStep(2)} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
+              Back
+            </button>
+          </>
+        )}
+
+        {step === 4 && (
+          <Step4Review token={token} form={form} onBack={() => setStep(3)} />
+        )}
       </div>
     </div>
+  );
+}
+
+function Step4Review({ token, form, onBack }) {
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setError('');
+
+    const res = await fetch(`/api/riders/${token}/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+
+    setSubmitting(false);
+
+    if (res.ok) {
+      setSubmitted(true);
+    } else {
+      const data = await res.json();
+      setError(data.error || 'Something went wrong. Please try again.');
+    }
+  };
+
+  if (submitted) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+          <CheckCircle2 size={48} color="#05C16A" />
+        </div>
+        <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 10 }}>Application Received</h1>
+        <p style={{ color: '#B7D4C4', fontSize: 15 }}>
+          Thank you. NTVS will review your application and get back to you by email within 2–3 business days.
+        </p>
+      </div>
+    );
+  }
+
+  const row = (label, value) => (
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #2A4A38' }}>
+      <span style={{ color: '#7FB89E', fontSize: 13 }}>{label}</span>
+      <span style={{ fontSize: 14, textAlign: 'right', maxWidth: '60%' }}>{value || '—'}</span>
+    </div>
+  );
+
+  return (
+    <>
+      <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Review & Submit</h1>
+
+      <h2 style={{ fontSize: 15, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Your Details</h2>
+      {row('Full Name', form.fullName)}
+      {row('Phone', form.phone)}
+      {row('Email', form.email)}
+      {row('Address', form.address)}
+      {row('Ghana Card', form.ghanaIdNumber)}
+      {row('License', form.licenseNumber)}
+      {row('Location', form.latitude ? `${form.latitude.toFixed(4)}, ${form.longitude.toFixed(4)}` : null)}
+
+      <h2 style={{ fontSize: 15, fontWeight: 700, marginTop: 20, marginBottom: 8, color: '#05C16A' }}>Guarantor</h2>
+      {row('Full Name', form.guarantorFullName)}
+      {row('Phone', form.guarantorPhone)}
+      {row('Email', form.guarantorEmail)}
+      {row('Address', form.guarantorAddress)}
+      {row('Ghana Card', form.guarantorGhanaIdNumber)}
+      {row('Location', form.guarantorLatitude ? `${form.guarantorLatitude.toFixed(4)}, ${form.guarantorLongitude.toFixed(4)}` : null)}
+
+      {error && <p style={{ color: '#F5A3A3', marginTop: 16, fontSize: 14 }}>{error}</p>}
+
+      <button onClick={handleSubmit} disabled={submitting} style={{ ...buttonStyle, marginTop: 24 }}>
+        {submitting ? 'Submitting...' : 'Submit Application'}
+      </button>
+      <button onClick={onBack} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
+        Back
+      </button>
+    </>
   );
 }
