@@ -45,6 +45,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
   const [searching, setSearching] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
   const debounceRef = useRef(null);
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
     setReady(true);
@@ -80,6 +81,8 @@ export default function LocationPicker({ lat, lng, onChange }) {
       return;
     }
 
+    const thisRequestId = ++requestIdRef.current;
+
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
       try {
@@ -87,15 +90,22 @@ export default function LocationPicker({ lat, lng, onChange }) {
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=gh&limit=5`
         );
         const data = await res.json();
-        setResults(data);
+
+        if (thisRequestId === requestIdRef.current) {
+          setResults(data);
+        }
       } catch (err) {
-        setResults([]);
+        if (thisRequestId === requestIdRef.current) {
+          setResults([]);
+        }
       }
       setSearching(false);
     }, 500);
   };
 
   const handleSelectResult = (result) => {
+    requestIdRef.current++;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setFlyTarget({ lat: parseFloat(result.lat), lng: parseFloat(result.lon) });
     setQuery(result.display_name);
     setResults([]);
@@ -136,7 +146,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
             value={query}
             onChange={handleSearchChange}
             placeholder="Search a place or area to jump there..."
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 14 }}
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 16 }}
           />
         </div>
 
@@ -190,5 +200,4 @@ export default function LocationPicker({ lat, lng, onChange }) {
       )}
     </div>
   );
-  
 }
