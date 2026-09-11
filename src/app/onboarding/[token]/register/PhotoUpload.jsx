@@ -6,8 +6,7 @@ export default function PhotoUpload({ token, label, onUploaded }) {
   const [preview, setPreview] = useState(null);
   const [uploading, setUploading] = useState(false);
 
-  const handleFile = async (e) => {
-    const file = e.target.files[0];
+  const uploadFile = async (file) => {
     if (!file) return;
 
     setPreview(URL.createObjectURL(file));
@@ -31,28 +30,65 @@ export default function PhotoUpload({ token, label, onUploaded }) {
       <label style={{ fontSize: 13, fontWeight: 600, color: '#B7D4C4', marginBottom: 6, display: 'block' }}>
         {label}
       </label>
-      <label
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: 100,
-          borderRadius: 12,
-          border: '1px dashed #2A4A38',
-          background: 'rgba(255,255,255,0.06)',
-          cursor: 'pointer',
-          overflow: 'hidden',
-        }}
-      >
-        {preview ? (
-          <img src={preview} alt="preview" style={{ height: '100%', objectFit: 'cover' }} />
-        ) : (
-          <span style={{ fontSize: 13, color: '#7FB89E' }}>
-            {uploading ? 'Uploading...' : 'Tap to upload photo'}
-          </span>
-        )}
-        <input type="file" accept="image/*" onChange={handleFile} style={{ display: 'none' }} />
-      </label>
+
+      {preview && (
+        <div style={{ marginBottom: 8, borderRadius: 12, overflow: 'hidden', height: 100 }}>
+          <img src={preview} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10 }}>
+        <label
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '12px',
+            borderRadius: 12,
+            border: '1px dashed #2A4A38',
+            background: 'rgba(255,255,255,0.06)',
+            cursor: 'pointer',
+            fontSize: 13,
+            color: '#7FB89E',
+            textAlign: 'center',
+          }}
+        >
+          {uploading ? 'Uploading...' : 'Take Photo'}
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={(e) => uploadFile(e.target.files[0])}
+            style={{ display: 'none' }}
+          />
+        </label>
+
+        <label
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '12px',
+            borderRadius: 12,
+            border: '1px dashed #2A4A38',
+            background: 'rgba(255,255,255,0.06)',
+            cursor: 'pointer',
+            fontSize: 13,
+            color: '#7FB89E',
+            textAlign: 'center',
+          }}
+        >
+          {uploading ? 'Uploading...' : 'Choose from Gallery'}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => uploadFile(e.target.files[0])}
+            style={{ display: 'none' }}
+          />
+        </label>
+      </div>
     </div>
   );
 }

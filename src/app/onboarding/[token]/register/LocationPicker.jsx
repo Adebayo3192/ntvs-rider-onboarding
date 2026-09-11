@@ -1,15 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { MapPin } from 'lucide-react';
+import { MapPin, Search } from 'lucide-react';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
 const Marker = dynamic(() => import('react-leaflet').then((m) => m.Marker), { ssr: false });
+
 const useMapEvents = (props) => {
   const { useMapEvents: hook } = require('react-leaflet');
   return hook(props);
+};
+
+const useMap = () => {
+  const { useMap: hook } = require('react-leaflet');
+  return hook();
 };
 
 function ClickHandler({ onPick }) {
@@ -21,9 +27,24 @@ function ClickHandler({ onPick }) {
   return null;
 }
 
+function FlyToHandler({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo([target.lat, target.lng], 15);
+    }
+  }, [target, map]);
+  return null;
+}
+
 export default function LocationPicker({ lat, lng, onChange }) {
   const [ready, setReady] = useState(false);
   const [icon, setIcon] = useState(null);
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [flyTarget, setFlyTarget] = useState(null);
+  const debounceRef = useRef(null);
 
   useEffect(() => {
     setReady(true);
@@ -46,6 +67,38 @@ export default function LocationPicker({ lat, lng, onChange }) {
       (pos) => onChange(pos.coords.latitude, pos.coords.longitude),
       () => alert('Could not get your location. You can tap the map instead to drop a pin.')
     );
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setQuery(value);
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
+    if (value.trim().length < 3) {
+      setResults([]);
+      return;
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=gh&limit=5`
+        );
+        const data = await res.json();
+        setResults(data);
+      } catch (err) {
+        setResults([]);
+      }
+      setSearching(false);
+    }, 500);
+  };
+
+  const handleSelectResult = (result) => {
+    setFlyTarget({ lat: parseFloat(result.lat), lng: parseFloat(result.lon) });
+    setQuery(result.display_name);
+    setResults([]);
   };
 
   if (!ready || !icon) return <div style={{ height: 260, background: '#1B3A28', borderRadius: 14 }} />;
@@ -72,8 +125,42 @@ export default function LocationPicker({ lat, lng, onChange }) {
           gap: 8,
         }}
       >
-     <MapPin size={18} /> Use My Current Location
+        <MapPin size={18} /> Use My Current Location
       </button>
+
+      <div style={{ position: 'relative', marginBottom: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid #2A4A38', borderRadius: 12, padding: '10px 14px' }}>
+          <Search size={16} color="#7FB89E" />
+          <input
+            type="text"
+            value={query}
+            onChange={handleSearchChange}
+            placeholder="Search a place or area to jump there..."
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 14 }}
+          />
+        </div>
+
+        {(results.length > 0 || searching) && (
+          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#173D28', border: '1px solid #2A4A38', borderRadius: 12, marginTop: 4, zIndex: 1000, overflow: 'hidden' }}>
+            {searching && (
+              <div style={{ padding: 12, fontSize: 13, color: '#7FB89E' }}>Searching...</div>
+            )}
+            {results.map((r) => (
+              <div
+                key={r.place_id}
+                onClick={() => handleSelectResult(r)}
+                style={{ padding: 12, fontSize: 13, color: '#DCEFE3', cursor: 'pointer', borderBottom: '1px solid #2A4A38' }}
+              >
+                {r.display_name}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div style={{ fontSize: 12, color: '#7FB89E', marginBottom: 10 }}>
+        Search moves the map to that area — tap or drag the pin below to mark the exact spot.
+      </div>
 
       <div style={{ height: 260, borderRadius: 14, overflow: 'hidden' }}>
         <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%' }}>
@@ -92,6 +179,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
             />
           )}
           <ClickHandler onPick={onChange} />
+          <FlyToHandler target={flyTarget} />
         </MapContainer>
       </div>
 
@@ -102,4 +190,5 @@ export default function LocationPicker({ lat, lng, onChange }) {
       )}
     </div>
   );
+  
 }
