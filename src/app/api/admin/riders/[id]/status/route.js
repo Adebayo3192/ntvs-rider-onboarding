@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { notifyRiderOfDecision } from '@/lib/email';
 
 export async function PATCH(request, { params }) {
   const { id } = await params;
@@ -13,7 +14,7 @@ export async function PATCH(request, { params }) {
     return NextResponse.json({ error: 'A rejection reason is required' }, { status: 400 });
   }
 
-  const { error } = await supabaseAdmin
+  const { data: rider, error } = await supabaseAdmin
     .from('riders')
     .update({
       status,
@@ -21,10 +22,16 @@ export async function PATCH(request, { params }) {
       locked: true,
       rejection_reason: status === 'rejected' ? reason : null,
     })
-    .eq('id', id);
+    .eq('id', id)
+    .select('full_name, email')
+    .single();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  if (rider?.email) {
+    await notifyRiderOfDecision(rider.email, rider.full_name, status, reason);
   }
 
   return NextResponse.json({ success: true });

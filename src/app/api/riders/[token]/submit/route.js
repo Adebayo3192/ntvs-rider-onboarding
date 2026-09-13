@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { notifyAdminOfSubmission } from '@/lib/email';
 
 export async function POST(request, { params }) {
   const { token } = await params;
@@ -28,6 +29,13 @@ export async function POST(request, { params }) {
     return NextResponse.json({ error: riderError.message }, { status: 500 });
   }
 
+  // Remove any existing guarantor for this rider first, so a resubmission
+  // (before approval/rejection) never leaves behind a duplicate row
+  await supabaseAdmin
+    .from('guarantors')
+    .delete()
+    .eq('rider_id', rider.id);
+
   const { error: guarantorError } = await supabaseAdmin
     .from('guarantors')
     .insert({
@@ -45,6 +53,8 @@ export async function POST(request, { params }) {
   if (guarantorError) {
     return NextResponse.json({ error: guarantorError.message }, { status: 500 });
   }
+
+  await notifyAdminOfSubmission(body.fullName);
 
   return NextResponse.json({ success: true });
 }
