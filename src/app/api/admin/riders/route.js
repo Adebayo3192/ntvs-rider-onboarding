@@ -9,7 +9,7 @@ export async function GET(request) {
 
   let query = supabaseAdmin
     .from('riders')
-    .select('id, full_name, phone, status, submitted_at, archived')
+    .select('id, rider_number, full_name, phone, status, submitted_at, archived')
     .not('submitted_at', 'is', null)
     .eq('archived', archived)
     .order('submitted_at', { ascending: false });

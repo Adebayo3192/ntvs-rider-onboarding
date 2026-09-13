@@ -11,6 +11,11 @@ const statusColors = {
   rejected: '#F5A3A3',
 };
 
+function formatRiderId(riderNumber) {
+  if (!riderNumber) return '—';
+  return `R${String(riderNumber).padStart(4, '0')}`;
+}
+
 export default function RidersPage() {
   const [riders, setRiders] = useState([]);
   const [search, setSearch] = useState('');
@@ -114,7 +119,10 @@ export default function RidersPage() {
               href={`/admin/dashboard/riders/${r.id}`}
               style={{ display: 'grid', gridTemplateColumns: '2fr 1.5fr 1fr 1.5fr', padding: '14px 20px', fontSize: 14, borderBottom: '1px solid #2A4A38', color: '#fff', textDecoration: 'none' }}
             >
-              <div>{r.full_name || '—'}</div>
+              <div>
+                <div>{r.full_name || '—'}</div>
+                <div style={{ fontSize: 12, color: '#7FB89E', marginTop: 2 }}>{formatRiderId(r.rider_number)}</div>
+              </div>
               <div>{r.phone || '—'}</div>
               <div>
                 <span style={{ background: statusColors[r.status], color: '#0E2A1D', fontWeight: 700, fontSize: 12, padding: '4px 10px', borderRadius: 999 }}>

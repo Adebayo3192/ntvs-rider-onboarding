@@ -15,6 +15,11 @@ const row = (label, value) => (
   </div>
 );
 
+function formatRiderId(riderNumber) {
+  if (!riderNumber) return '—';
+  return `R${String(riderNumber).padStart(4, '0')}`;
+}
+
 const editInputStyle = {
   width: '100%',
   padding: '10px 12px',
@@ -301,7 +306,10 @@ export default function RiderDetailPage() {
         </Link>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800 }}>{rider.full_name || 'Rider'}</h1>
+          <div>
+            <h1 style={{ fontSize: 24, fontWeight: 800 }}>{rider.full_name || 'Rider'}</h1>
+            <div style={{ fontSize: 13, color: '#7FB89E', marginTop: 2 }}>{formatRiderId(rider.rider_number)}</div>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ background: statusColors[rider.status], color: '#0E2A1D', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
               {rider.status}
