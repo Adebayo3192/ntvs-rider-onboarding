@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Pencil, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
 
 const statusColors = { pending: '#F5C242', approved: '#05C16A', rejected: '#F5A3A3' };
 
@@ -13,6 +14,20 @@ const row = (label, value) => (
     <span style={{ fontSize: 14 }}>{value || '—'}</span>
   </div>
 );
+
+const editInputStyle = {
+  width: '100%',
+  padding: '10px 12px',
+  borderRadius: 8,
+  border: '1px solid #2A4A38',
+  background: 'rgba(255,255,255,0.06)',
+  color: '#fff',
+  fontSize: 14,
+  marginBottom: 10,
+  boxSizing: 'border-box',
+};
+
+const editLabelStyle = { fontSize: 12, fontWeight: 600, color: '#7FB89E', marginBottom: 4, display: 'block' };
 
 const REJECTION_REASONS = [
   'Incomplete or unclear ID/license photo',
@@ -79,9 +94,13 @@ function RejectDialog({ onCancel, onConfirm, submitting }) {
 
 export default function RiderDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const [data, setData] = useState(null);
   const [acting, setActing] = useState(false);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState(null);
 
   const load = async () => {
     const res = await fetch(`/api/admin/riders/${id}`);
@@ -92,6 +111,47 @@ export default function RiderDetailPage() {
   useEffect(() => {
     load();
   }, [id]);
+
+  const startEditing = () => {
+    setEditForm({
+      fullName: data.rider.full_name || '',
+      phone: data.rider.phone || '',
+      email: data.rider.email || '',
+      address: data.rider.address || '',
+      ghanaIdNumber: data.rider.ghana_id_number || '',
+      licenseNumber: data.rider.license_number || '',
+      guarantor: data.guarantor
+        ? {
+            fullName: data.guarantor.full_name || '',
+            phone: data.guarantor.phone || '',
+            email: data.guarantor.email || '',
+            address: data.guarantor.address || '',
+            ghanaIdNumber: data.guarantor.ghana_id_number || '',
+          }
+        : null,
+    });
+    setEditing(true);
+  };
+
+  const updateField = (field) => (e) => {
+    setEditForm({ ...editForm, [field]: e.target.value });
+  };
+
+  const updateGuarantorField = (field) => (e) => {
+    setEditForm({ ...editForm, guarantor: { ...editForm.guarantor, [field]: e.target.value } });
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await fetch(`/api/admin/riders/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editForm),
+    });
+    setSaving(false);
+    setEditing(false);
+    load();
+  };
 
   const handleApprove = async () => {
     if (!confirm('Are you sure you want to approve this rider?')) return;
@@ -117,6 +177,29 @@ export default function RiderDetailPage() {
     load();
   };
 
+  const handleArchiveToggle = async () => {
+    const nextArchived = !data.rider.archived;
+    const label = nextArchived ? 'archive' : 'unarchive';
+    if (!confirm(`Are you sure you want to ${label} this rider?`)) return;
+
+    setActing(true);
+    await fetch(`/api/admin/riders/${id}/archive`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived: nextArchived }),
+    });
+    setActing(false);
+    load();
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('This will permanently delete this rider and their guarantor. This cannot be undone. Are you sure?')) return;
+
+    setActing(true);
+    await fetch(`/api/admin/riders/${id}`, { method: 'DELETE' });
+    router.push('/admin/dashboard/riders');
+  };
+
   if (!data) {
     return <div style={{ minHeight: '100vh', background: '#0E2A1D', color: '#7FB89E', padding: 32 }}>Loading...</div>;
   }
@@ -131,82 +214,183 @@ export default function RiderDetailPage() {
           ← Back to Riders
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
           <h1 style={{ fontSize: 24, fontWeight: 800 }}>{rider.full_name || 'Rider'}</h1>
-          <span style={{ background: statusColors[rider.status], color: '#0E2A1D', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
-            {rider.status}
-          </span>
-        </div>
-
-        <div style={section}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Rider Details</h2>
-          {row('Phone', rider.phone)}
-          {row('Email', rider.email)}
-          {row('Address', rider.address)}
-          {row('Ghana Card Number', rider.ghana_id_number)}
-          {row('License Number', rider.license_number)}
-          {rider.latitude && (
-            <div style={{ padding: '10px 0' }}>
-              <a href={mapsLink(rider.latitude, rider.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
-                Open Location in Google Maps →
-              </a>
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-            {rider.ghana_id_signed_url && (
-              <img src={rider.ghana_id_signed_url} alt="Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ background: statusColors[rider.status], color: '#0E2A1D', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
+              {rider.status}
+            </span>
+            {rider.archived && (
+              <span style={{ background: '#4a4a4a', color: '#DCEFE3', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
+                Archived
+              </span>
             )}
-            {rider.license_signed_url && (
-              <img src={rider.license_signed_url} alt="License" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+            {!editing && (
+              <button
+                onClick={startEditing}
+                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #2A4A38', background: 'transparent', color: '#DCEFE3', fontSize: 13, cursor: 'pointer' }}
+              >
+                <Pencil size={14} /> Edit
+              </button>
             )}
           </div>
         </div>
 
-        {guarantor && (
-          <div style={section}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Guarantor</h2>
-            {row('Full Name', guarantor.full_name)}
-            {row('Phone', guarantor.phone)}
-            {row('Email', guarantor.email)}
-            {row('Address', guarantor.address)}
-            {row('Ghana Card Number', guarantor.ghana_id_number)}
-            {guarantor.latitude && (
-              <div style={{ padding: '10px 0' }}>
-                <a href={mapsLink(guarantor.latitude, guarantor.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
-                  Open Location in Google Maps →
-                </a>
+        {!editing && (
+          <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
+            <button
+              onClick={handleArchiveToggle}
+              disabled={acting}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #2A4A38', background: 'transparent', color: '#DCEFE3', fontSize: 13, cursor: 'pointer' }}
+            >
+              {rider.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
+              {rider.archived ? 'Unarchive' : 'Archive'}
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={acting}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #5A2A2A', background: 'transparent', color: '#F5A3A3', fontSize: 13, cursor: 'pointer' }}
+            >
+              <Trash2 size={14} /> Delete
+            </button>
+          </div>
+        )}
+
+        {editing ? (
+          <>
+            <div style={section}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: '#05C16A' }}>Edit Rider Details</h2>
+
+              <label style={editLabelStyle}>Full Name</label>
+              <input style={editInputStyle} value={editForm.fullName} onChange={updateField('fullName')} />
+
+              <label style={editLabelStyle}>Phone</label>
+              <input style={editInputStyle} value={editForm.phone} onChange={updateField('phone')} />
+
+              <label style={editLabelStyle}>Email</label>
+              <input style={editInputStyle} value={editForm.email} onChange={updateField('email')} />
+
+              <label style={editLabelStyle}>Address</label>
+              <input style={editInputStyle} value={editForm.address} onChange={updateField('address')} />
+
+              <label style={editLabelStyle}>Ghana Card Number</label>
+              <input style={editInputStyle} value={editForm.ghanaIdNumber} onChange={updateField('ghanaIdNumber')} />
+
+              <label style={editLabelStyle}>License Number</label>
+              <input style={editInputStyle} value={editForm.licenseNumber} onChange={updateField('licenseNumber')} />
+            </div>
+
+            {editForm.guarantor && (
+              <div style={section}>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: '#05C16A' }}>Edit Guarantor</h2>
+
+                <label style={editLabelStyle}>Full Name</label>
+                <input style={editInputStyle} value={editForm.guarantor.fullName} onChange={updateGuarantorField('fullName')} />
+
+                <label style={editLabelStyle}>Phone</label>
+                <input style={editInputStyle} value={editForm.guarantor.phone} onChange={updateGuarantorField('phone')} />
+
+                <label style={editLabelStyle}>Email</label>
+                <input style={editInputStyle} value={editForm.guarantor.email} onChange={updateGuarantorField('email')} />
+
+                <label style={editLabelStyle}>Address</label>
+                <input style={editInputStyle} value={editForm.guarantor.address} onChange={updateGuarantorField('address')} />
+
+                <label style={editLabelStyle}>Ghana Card Number</label>
+                <input style={editInputStyle} value={editForm.guarantor.ghanaIdNumber} onChange={updateGuarantorField('ghanaIdNumber')} />
               </div>
             )}
-            {guarantor.ghana_id_signed_url && (
-              <img src={guarantor.ghana_id_signed_url} alt="Guarantor Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 12 }} />
+
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+              >
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                disabled={saving}
+                style={{ flex: 1, padding: 16, borderRadius: 12, border: '1px solid #2A4A38', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={section}>
+              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Rider Details</h2>
+              {row('Phone', rider.phone)}
+              {row('Email', rider.email)}
+              {row('Address', rider.address)}
+              {row('Ghana Card Number', rider.ghana_id_number)}
+              {row('License Number', rider.license_number)}
+              {rider.latitude && (
+                <div style={{ padding: '10px 0' }}>
+                  <a href={mapsLink(rider.latitude, rider.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
+                    Open Location in Google Maps →
+                  </a>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+                {rider.ghana_id_signed_url && (
+                  <img src={rider.ghana_id_signed_url} alt="Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+                )}
+                {rider.license_signed_url && (
+                  <img src={rider.license_signed_url} alt="License" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+                )}
+              </div>
+            </div>
+
+            {guarantor && (
+              <div style={section}>
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Guarantor</h2>
+                {row('Full Name', guarantor.full_name)}
+                {row('Phone', guarantor.phone)}
+                {row('Email', guarantor.email)}
+                {row('Address', guarantor.address)}
+                {row('Ghana Card Number', guarantor.ghana_id_number)}
+                {guarantor.latitude && (
+                  <div style={{ padding: '10px 0' }}>
+                    <a href={mapsLink(guarantor.latitude, guarantor.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
+                      Open Location in Google Maps →
+                    </a>
+                  </div>
+                )}
+                {guarantor.ghana_id_signed_url && (
+                  <img src={guarantor.ghana_id_signed_url} alt="Guarantor Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 12 }} />
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        {rider.status === 'rejected' && rider.rejection_reason && (
-          <div style={{ ...section, borderLeft: '3px solid #F5A3A3' }}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: '#F5A3A3' }}>Rejection Reason</h2>
-            <p style={{ fontSize: 14, color: '#DCEFE3' }}>{rider.rejection_reason}</p>
-          </div>
-        )}
+            {rider.status === 'rejected' && rider.rejection_reason && (
+              <div style={{ ...section, borderLeft: '3px solid #F5A3A3' }}>
+                <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: '#F5A3A3' }}>Rejection Reason</h2>
+                <p style={{ fontSize: 14, color: '#DCEFE3' }}>{rider.rejection_reason}</p>
+              </div>
+            )}
 
-        {rider.status === 'pending' && (
-          <div style={{ display: 'flex', gap: 12 }}>
-            <button
-              onClick={handleApprove}
-              disabled={acting}
-              style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => setShowRejectDialog(true)}
-              disabled={acting}
-              style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#F5A3A3', color: '#0E2A1D', fontWeight: 700, cursor: 'pointer' }}
-            >
-              Reject
-            </button>
-          </div>
+            {rider.status === 'pending' && (
+              <div style={{ display: 'flex', gap: 12 }}>
+                <button
+                  onClick={handleApprove}
+                  disabled={acting}
+                  style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Approve
+                </button>
+                <button
+                  onClick={() => setShowRejectDialog(true)}
+                  disabled={acting}
+                  style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#F5A3A3', color: '#0E2A1D', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Reject
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

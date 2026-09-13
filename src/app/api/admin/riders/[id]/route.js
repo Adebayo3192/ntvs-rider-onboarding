@@ -44,3 +44,58 @@ export async function GET(request, { params }) {
     guarantor: guarantor ? { ...guarantor, ghana_id_signed_url: guarantorGhanaIdSignedUrl } : null,
   });
 }
+
+export async function PATCH(request, { params }) {
+  const { id } = await params;
+  const body = await request.json();
+
+  const { error: riderError } = await supabaseAdmin
+    .from('riders')
+    .update({
+      full_name: body.fullName,
+      phone: body.phone,
+      email: body.email,
+      address: body.address,
+      ghana_id_number: body.ghanaIdNumber,
+      license_number: body.licenseNumber,
+    })
+    .eq('id', id);
+
+  if (riderError) {
+    return NextResponse.json({ error: riderError.message }, { status: 500 });
+  }
+
+  if (body.guarantor) {
+    const { error: guarantorError } = await supabaseAdmin
+      .from('guarantors')
+      .update({
+        full_name: body.guarantor.fullName,
+        phone: body.guarantor.phone,
+        email: body.guarantor.email,
+        address: body.guarantor.address,
+        ghana_id_number: body.guarantor.ghanaIdNumber,
+      })
+      .eq('rider_id', id);
+
+    if (guarantorError) {
+      return NextResponse.json({ error: guarantorError.message }, { status: 500 });
+    }
+  }
+
+  return NextResponse.json({ success: true });
+}
+
+export async function DELETE(request, { params }) {
+  const { id } = await params;
+
+  const { error } = await supabaseAdmin
+    .from('riders')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

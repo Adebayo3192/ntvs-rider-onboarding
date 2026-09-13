@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search } from 'lucide-react';
+import AddRiderModal from './AddRiderModal';
 
 const statusColors = {
   pending: '#F5C242',
@@ -14,11 +15,13 @@ export default function RidersPage() {
   const [riders, setRiders] = useState([]);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
+  const [viewArchived, setViewArchived] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const fetchRiders = async () => {
     setLoading(true);
-    const params = new URLSearchParams({ search, status });
+    const params = new URLSearchParams({ search, status, archived: viewArchived });
     const res = await fetch(`/api/admin/riders?${params}`);
     const data = await res.json();
     setRiders(data);
@@ -28,12 +31,40 @@ export default function RidersPage() {
   useEffect(() => {
     const timeout = setTimeout(fetchRiders, 300);
     return () => clearTimeout(timeout);
-  }, [search, status]);
+  }, [search, status, viewArchived]);
+
+  const tabStyle = (active) => ({
+    padding: '8px 16px',
+    borderRadius: 10,
+    border: 'none',
+    background: active ? '#05C16A' : 'transparent',
+    color: active ? '#0E2A1D' : '#DCEFE3',
+    fontWeight: 600,
+    fontSize: 13,
+    cursor: 'pointer',
+  });
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: '32px 24px' }}>
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 24 }}>Riders</h1>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+          <h1 style={{ fontSize: 26, fontWeight: 800 }}>Riders</h1>
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{ padding: '10px 20px', borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
+          >
+            + Add Rider
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 6, marginBottom: 20, background: 'rgba(255,255,255,0.04)', padding: 4, borderRadius: 12, width: 'fit-content' }}>
+          <button onClick={() => setViewArchived(false)} style={tabStyle(!viewArchived)}>
+            Active
+          </button>
+          <button onClick={() => setViewArchived(true)} style={tabStyle(viewArchived)}>
+            Archived
+          </button>
+        </div>
 
         <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: 220, display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid #2A4A38', borderRadius: 12, padding: '10px 14px' }}>
@@ -72,7 +103,9 @@ export default function RidersPage() {
           )}
 
           {!loading && riders.length === 0 && (
-            <div style={{ padding: 20, textAlign: 'center', color: '#7FB89E' }}>No riders found.</div>
+            <div style={{ padding: 20, textAlign: 'center', color: '#7FB89E' }}>
+              {viewArchived ? 'No archived riders.' : 'No riders found.'}
+            </div>
           )}
 
           {!loading && riders.map((r) => (
@@ -93,6 +126,10 @@ export default function RidersPage() {
           ))}
         </div>
       </div>
+
+      {showAddModal && (
+        <AddRiderModal onClose={() => setShowAddModal(false)} />
+      )}
     </div>
   );
 }
