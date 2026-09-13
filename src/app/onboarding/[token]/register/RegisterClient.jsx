@@ -13,15 +13,24 @@ const inputStyle = {
   background: 'rgba(255,255,255,0.06)',
   color: '#fff',
   fontSize: 15,
-  marginBottom: 14,
+  marginBottom: 4,
   boxSizing: 'border-box',
 };
+
+const inputErrorStyle = { ...inputStyle, border: '1px solid #F5A3A3' };
 
 const labelStyle = {
   fontSize: 13,
   fontWeight: 600,
   color: '#B7D4C4',
   marginBottom: 6,
+  display: 'block',
+};
+
+const errorTextStyle = {
+  color: '#F5A3A3',
+  fontSize: 12,
+  marginBottom: 10,
   display: 'block',
 };
 
@@ -38,8 +47,20 @@ const buttonStyle = {
   marginTop: 8,
 };
 
+const STEP1_FIELDS = ['fullName', 'phone', 'email', 'address', 'ghanaIdNumber', 'licenseNumber', 'ghanaIdImageUrl', 'licenseImageUrl'];
+const STEP2_FIELDS = ['latitude', 'longitude'];
+const STEP3_FIELDS = ['guarantorFullName', 'guarantorPhone', 'guarantorEmail', 'guarantorAddress', 'guarantorGhanaIdNumber', 'guarantorGhanaIdImageUrl', 'guarantorLatitude', 'guarantorLongitude'];
+
+function getMissingFields(form, fieldList) {
+  return fieldList.filter((f) => {
+    const value = form[f];
+    return value === '' || value === null || value === undefined;
+  });
+}
+
 export default function RegisterClient({ token }) {
   const [step, setStep] = useState(1);
+  const [errors, setErrors] = useState([]);
   const [form, setForm] = useState({
     fullName: '',
     phone: '',
@@ -65,6 +86,19 @@ export default function RegisterClient({ token }) {
     setForm({ ...form, [field]: e.target.value });
   };
 
+  const goToStep = (targetStep, fieldsToCheck) => {
+    const missing = getMissingFields(form, fieldsToCheck);
+    if (missing.length > 0) {
+      setErrors(missing);
+      return;
+    }
+    setErrors([]);
+    setStep(targetStep);
+  };
+
+  const has = (field) => errors.includes(field);
+  const style = (field) => (has(field) ? inputErrorStyle : inputStyle);
+
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: '32px 20px' }}>
       <div style={{ maxWidth: 480, margin: '0 auto' }}>
@@ -77,36 +111,46 @@ export default function RegisterClient({ token }) {
             <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Your Details</h1>
 
             <label style={labelStyle}>Full Name</label>
-            <input style={inputStyle} value={form.fullName} onChange={update('fullName')} placeholder="e.g. Kwame Mensah" />
+            <input style={style('fullName')} value={form.fullName} onChange={update('fullName')} placeholder="e.g. Kwame Mensah" />
+            {has('fullName') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Phone Number</label>
-            <input style={inputStyle} value={form.phone} onChange={update('phone')} placeholder="+233 24 000 0000" />
+            <input style={style('phone')} value={form.phone} onChange={update('phone')} placeholder="+233 24 000 0000" />
+            {has('phone') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Email Address</label>
-            <input style={inputStyle} type="email" value={form.email} onChange={update('email')} placeholder="you@example.com" />
+            <input style={style('email')} type="email" value={form.email} onChange={update('email')} placeholder="you@example.com" />
+            {has('email') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Residential Address</label>
-            <input style={inputStyle} value={form.address} onChange={update('address')} placeholder="House number, area, city" />
+            <input style={style('address')} value={form.address} onChange={update('address')} placeholder="House number, area, city" />
+            {has('address') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Ghana Card Number</label>
-            <input style={inputStyle} value={form.ghanaIdNumber} onChange={update('ghanaIdNumber')} placeholder="GHA-000000000-0" />
+            <input style={style('ghanaIdNumber')} value={form.ghanaIdNumber} onChange={update('ghanaIdNumber')} placeholder="GHA-000000000-0" />
+            {has('ghanaIdNumber') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Driving License Number</label>
-            <input style={inputStyle} value={form.licenseNumber} onChange={update('licenseNumber')} placeholder="DVLA-000000" />
+            <input style={style('licenseNumber')} value={form.licenseNumber} onChange={update('licenseNumber')} placeholder="DVLA-000000" />
+            {has('licenseNumber') && <span style={errorTextStyle}>This field is required</span>}
 
-            <PhotoUpload
-              token={token}
-              label="Ghana Card Photo"
-              onUploaded={(url) => setForm((f) => ({ ...f, ghanaIdImageUrl: url }))}
-            />
+            <div style={{ marginTop: 10 }}>
+              <PhotoUpload
+                token={token}
+                label="Ghana Card Photo"
+                onUploaded={(url) => setForm((f) => ({ ...f, ghanaIdImageUrl: url }))}
+              />
+              {has('ghanaIdImageUrl') && <span style={{ ...errorTextStyle, marginTop: -8 }}>Please upload this photo</span>}
 
-            <PhotoUpload
-              token={token}
-              label="Driving License Photo"
-              onUploaded={(url) => setForm((f) => ({ ...f, licenseImageUrl: url }))}
-            />
+              <PhotoUpload
+                token={token}
+                label="Driving License Photo"
+                onUploaded={(url) => setForm((f) => ({ ...f, licenseImageUrl: url }))}
+              />
+              {has('licenseImageUrl') && <span style={{ ...errorTextStyle, marginTop: -8 }}>Please upload this photo</span>}
+            </div>
 
-            <button onClick={() => setStep(2)} style={buttonStyle}>
+            <button onClick={() => goToStep(2, STEP1_FIELDS)} style={buttonStyle}>
               Next: Your Location
             </button>
           </>
@@ -121,11 +165,12 @@ export default function RegisterClient({ token }) {
               lng={form.longitude}
               onChange={(lat, lng) => setForm((f) => ({ ...f, latitude: lat, longitude: lng }))}
             />
+            {has('latitude') && <span style={errorTextStyle}>Please drop a pin on your location before continuing</span>}
 
-            <button onClick={() => setStep(3)} style={buttonStyle}>
+            <button onClick={() => goToStep(3, STEP2_FIELDS)} style={buttonStyle}>
               Next: Guarantor Details
             </button>
-            <button onClick={() => setStep(1)} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
+            <button onClick={() => { setErrors([]); setStep(1); }} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
               Back
             </button>
           </>
@@ -136,25 +181,33 @@ export default function RegisterClient({ token }) {
             <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 20 }}>Guarantor Details</h1>
 
             <label style={labelStyle}>Guarantor Full Name</label>
-            <input style={inputStyle} value={form.guarantorFullName} onChange={update('guarantorFullName')} placeholder="e.g. Abena Owusu" />
+            <input style={style('guarantorFullName')} value={form.guarantorFullName} onChange={update('guarantorFullName')} placeholder="e.g. Abena Owusu" />
+            {has('guarantorFullName') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Guarantor Phone Number</label>
-            <input style={inputStyle} value={form.guarantorPhone} onChange={update('guarantorPhone')} placeholder="+233 20 000 0000" />
+            <input style={style('guarantorPhone')} value={form.guarantorPhone} onChange={update('guarantorPhone')} placeholder="+233 20 000 0000" />
+            {has('guarantorPhone') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Guarantor Email Address</label>
-            <input style={inputStyle} type="email" value={form.guarantorEmail} onChange={update('guarantorEmail')} placeholder="guarantor@example.com" />
+            <input style={style('guarantorEmail')} type="email" value={form.guarantorEmail} onChange={update('guarantorEmail')} placeholder="guarantor@example.com" />
+            {has('guarantorEmail') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Guarantor Residential Address</label>
-            <input style={inputStyle} value={form.guarantorAddress} onChange={update('guarantorAddress')} placeholder="House number, area, city" />
+            <input style={style('guarantorAddress')} value={form.guarantorAddress} onChange={update('guarantorAddress')} placeholder="House number, area, city" />
+            {has('guarantorAddress') && <span style={errorTextStyle}>This field is required</span>}
 
             <label style={labelStyle}>Guarantor Ghana Card Number</label>
-            <input style={inputStyle} value={form.guarantorGhanaIdNumber} onChange={update('guarantorGhanaIdNumber')} placeholder="GHA-000000000-0" />
+            <input style={style('guarantorGhanaIdNumber')} value={form.guarantorGhanaIdNumber} onChange={update('guarantorGhanaIdNumber')} placeholder="GHA-000000000-0" />
+            {has('guarantorGhanaIdNumber') && <span style={errorTextStyle}>This field is required</span>}
 
-            <PhotoUpload
-              token={token}
-              label="Guarantor Ghana Card Photo"
-              onUploaded={(url) => setForm((f) => ({ ...f, guarantorGhanaIdImageUrl: url }))}
-            />
+            <div style={{ marginTop: 10 }}>
+              <PhotoUpload
+                token={token}
+                label="Guarantor Ghana Card Photo"
+                onUploaded={(url) => setForm((f) => ({ ...f, guarantorGhanaIdImageUrl: url }))}
+              />
+              {has('guarantorGhanaIdImageUrl') && <span style={{ ...errorTextStyle, marginTop: -8 }}>Please upload this photo</span>}
+            </div>
 
             <h2 style={{ fontSize: 16, fontWeight: 700, marginTop: 20, marginBottom: 10 }}>Guarantor's Location</h2>
             <LocationPicker
@@ -162,18 +215,25 @@ export default function RegisterClient({ token }) {
               lng={form.guarantorLongitude}
               onChange={(lat, lng) => setForm((f) => ({ ...f, guarantorLatitude: lat, guarantorLongitude: lng }))}
             />
+            {(has('guarantorLatitude') || has('guarantorLongitude')) && (
+              <span style={errorTextStyle}>Please drop a pin on the guarantor's location before continuing</span>
+            )}
 
-            <button onClick={() => setStep(4)} style={buttonStyle}>
+            <button onClick={() => goToStep(4, STEP3_FIELDS)} style={buttonStyle}>
               Next: Review & Submit
             </button>
-            <button onClick={() => setStep(2)} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
+            <button onClick={() => { setErrors([]); setStep(2); }} style={{ ...buttonStyle, background: 'transparent', border: '1px solid #2A4A38', marginTop: 10 }}>
               Back
             </button>
           </>
         )}
 
         {step === 4 && (
-          <Step4Review token={token} form={form} onBack={() => setStep(3)} />
+          <Step4Review
+            token={token}
+            form={form}
+            onBack={() => { setErrors([]); setStep(3); }}
+          />
         )}
       </div>
     </div>
@@ -208,7 +268,7 @@ function Step4Review({ token, form, onBack }) {
   if (submitted) {
     return (
       <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
+        <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'center' }}>
           <CheckCircle2 size={48} color="#05C16A" />
         </div>
         <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 10 }}>Application Received</h1>

@@ -31,7 +31,7 @@ function FlyToHandler({ target }) {
   const map = useMap();
   useEffect(() => {
     if (target) {
-      map.flyTo([target.lat, target.lng], 15);
+      map.flyTo([target.lat, target.lng], 16);
     }
   }, [target, map]);
   return null;
@@ -44,6 +44,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [flyTarget, setFlyTarget] = useState(null);
+  const [locating, setLocating] = useState(false);
   const debounceRef = useRef(null);
   const requestIdRef = useRef(0);
 
@@ -64,9 +65,19 @@ export default function LocationPicker({ lat, lng, onChange }) {
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) return;
+    setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => onChange(pos.coords.latitude, pos.coords.longitude),
-      () => alert('Could not get your location. You can tap the map instead to drop a pin.')
+      (pos) => {
+        const newLat = pos.coords.latitude;
+        const newLng = pos.coords.longitude;
+        onChange(newLat, newLng);
+        setFlyTarget({ lat: newLat, lng: newLng });
+        setLocating(false);
+      },
+      () => {
+        setLocating(false);
+        alert('Could not get your location. You can tap the map instead to drop a pin.');
+      }
     );
   };
 
@@ -118,6 +129,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
       <button
         type="button"
         onClick={useCurrentLocation}
+        disabled={locating}
         style={{
           width: '100%',
           padding: '14px',
@@ -135,7 +147,7 @@ export default function LocationPicker({ lat, lng, onChange }) {
           gap: 8,
         }}
       >
-        <MapPin size={18} /> Use My Current Location
+        <MapPin size={18} /> {locating ? 'Finding you...' : 'Use My Current Location'}
       </button>
 
       <div style={{ position: 'relative', marginBottom: 12 }}>

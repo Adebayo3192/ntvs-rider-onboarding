@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Pencil, Archive, ArchiveRestore, Trash2 } from 'lucide-react';
+import { Pencil, Archive, ArchiveRestore, Trash2, X, CheckCircle2 } from 'lucide-react';
 
 const statusColors = { pending: '#F5C242', approved: '#05C16A', rejected: '#F5A3A3' };
 
@@ -92,6 +92,80 @@ function RejectDialog({ onCancel, onConfirm, submitting }) {
   );
 }
 
+function ImageLightbox({ src, alt, onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 24,
+        zIndex: 3000,
+        cursor: 'zoom-out',
+      }}
+    >
+      <button
+        onClick={onClose}
+        style={{
+          position: 'absolute',
+          top: 20,
+          right: 20,
+          background: 'rgba(255,255,255,0.1)',
+          border: 'none',
+          borderRadius: '50%',
+          width: 40,
+          height: 40,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          color: '#fff',
+        }}
+      >
+        <X size={20} />
+      </button>
+      <img
+        src={src}
+        alt={alt}
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 12, objectFit: 'contain', cursor: 'default' }}
+      />
+    </div>
+  );
+}
+
+function SuccessToast({ message }) {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+        background: '#173D28',
+        border: '1px solid #05C16A',
+        borderRadius: 12,
+        padding: '14px 20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: 600,
+        zIndex: 4000,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
+      }}
+    >
+      <CheckCircle2 size={18} color="#05C16A" />
+      {message}
+    </div>
+  );
+}
+
 export default function RiderDetailPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -101,6 +175,8 @@ export default function RiderDetailPage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const [toastMessage, setToastMessage] = useState('');
 
   const load = async () => {
     const res = await fetch(`/api/admin/riders/${id}`);
@@ -141,6 +217,13 @@ export default function RiderDetailPage() {
     setEditForm({ ...editForm, guarantor: { ...editForm.guarantor, [field]: e.target.value } });
   };
 
+  const goBackWithMessage = (message) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      router.push('/admin/dashboard/riders');
+    }, 1200);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     await fetch(`/api/admin/riders/${id}`, {
@@ -151,6 +234,7 @@ export default function RiderDetailPage() {
     setSaving(false);
     setEditing(false);
     load();
+    goBackWithMessage('Rider details updated');
   };
 
   const handleApprove = async () => {
@@ -162,7 +246,7 @@ export default function RiderDetailPage() {
       body: JSON.stringify({ status: 'approved' }),
     });
     setActing(false);
-    load();
+    goBackWithMessage('Rider approved');
   };
 
   const handleReject = async (reason) => {
@@ -174,7 +258,7 @@ export default function RiderDetailPage() {
     });
     setActing(false);
     setShowRejectDialog(false);
-    load();
+    goBackWithMessage('Rider rejected');
   };
 
   const handleArchiveToggle = async () => {
@@ -189,7 +273,7 @@ export default function RiderDetailPage() {
       body: JSON.stringify({ archived: nextArchived }),
     });
     setActing(false);
-    load();
+    goBackWithMessage(nextArchived ? 'Rider archived' : 'Rider unarchived');
   };
 
   const handleDelete = async () => {
@@ -197,7 +281,7 @@ export default function RiderDetailPage() {
 
     setActing(true);
     await fetch(`/api/admin/riders/${id}`, { method: 'DELETE' });
-    router.push('/admin/dashboard/riders');
+    goBackWithMessage('Rider deleted');
   };
 
   if (!data) {
@@ -206,6 +290,8 @@ export default function RiderDetailPage() {
 
   const { rider, guarantor } = data;
   const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+
+  const thumbStyle = { width: 100, height: 100, objectFit: 'cover', borderRadius: 8, cursor: 'zoom-in' };
 
   return (
     <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: '32px 24px' }}>
@@ -225,7 +311,7 @@ export default function RiderDetailPage() {
                 Archived
               </span>
             )}
-            {!editing && (
+            {!editing && rider.status === 'pending' && (
               <button
                 onClick={startEditing}
                 style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #2A4A38', background: 'transparent', color: '#DCEFE3', fontSize: 13, cursor: 'pointer' }}
@@ -336,10 +422,20 @@ export default function RiderDetailPage() {
               )}
               <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
                 {rider.ghana_id_signed_url && (
-                  <img src={rider.ghana_id_signed_url} alt="Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+                  <img
+                    src={rider.ghana_id_signed_url}
+                    alt="Ghana Card"
+                    style={thumbStyle}
+                    onClick={() => setLightboxImage({ src: rider.ghana_id_signed_url, alt: 'Ghana Card' })}
+                  />
                 )}
                 {rider.license_signed_url && (
-                  <img src={rider.license_signed_url} alt="License" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8 }} />
+                  <img
+                    src={rider.license_signed_url}
+                    alt="License"
+                    style={thumbStyle}
+                    onClick={() => setLightboxImage({ src: rider.license_signed_url, alt: 'Driving License' })}
+                  />
                 )}
               </div>
             </div>
@@ -360,7 +456,12 @@ export default function RiderDetailPage() {
                   </div>
                 )}
                 {guarantor.ghana_id_signed_url && (
-                  <img src={guarantor.ghana_id_signed_url} alt="Guarantor Ghana Card" style={{ width: 100, height: 100, objectFit: 'cover', borderRadius: 8, marginTop: 12 }} />
+                  <img
+                    src={guarantor.ghana_id_signed_url}
+                    alt="Guarantor Ghana Card"
+                    style={{ ...thumbStyle, marginTop: 12 }}
+                    onClick={() => setLightboxImage({ src: guarantor.ghana_id_signed_url, alt: "Guarantor's Ghana Card" })}
+                  />
                 )}
               </div>
             )}
@@ -401,6 +502,16 @@ export default function RiderDetailPage() {
           submitting={acting}
         />
       )}
+
+      {lightboxImage && (
+        <ImageLightbox
+          src={lightboxImage.src}
+          alt={lightboxImage.alt}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
+
+      {toastMessage && <SuccessToast message={toastMessage} />}
     </div>
   );
 }
