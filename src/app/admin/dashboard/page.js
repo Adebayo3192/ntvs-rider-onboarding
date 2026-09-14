@@ -20,9 +20,9 @@ const card = {
 
 const hdrIconStyle = {
   flex: 'none',
-  width: 38,
-  height: 38,
-  borderRadius: 13,
+  width: 30,
+  height: 30,
+  borderRadius: 10,
   background: 'linear-gradient(140deg,#0FB863,#059C51)',
   display: 'flex',
   alignItems: 'center',
@@ -101,14 +101,14 @@ export default function DashboardHome() {
   };
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '26px 30px 30px', fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 24px 20px', fontFamily: FONT }}>
       {/* Welcome header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 22 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 16 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: '-1px', color: '#10281C' }}>
+          <h1 style={{ margin: 0, fontSize: 21, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C' }}>
             Welcome back, Admin 👋
           </h1>
-          <p style={{ margin: '9px 0 0', fontSize: 15, fontWeight: 500, color: '#6E7D76' }}>
+          <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: '#6E7D76' }}>
             Here's an overview of rider applications and their status.
           </p>
         </div>
@@ -118,37 +118,37 @@ export default function DashboardHome() {
             display: 'flex',
             alignItems: 'center',
             gap: 9,
-            padding: '12px 17px',
-            borderRadius: 14,
+            padding: '9px 14px',
+            borderRadius: 12,
             background: '#fff',
             border: '1px solid #E7ECE8',
             boxShadow: '0 2px 6px rgba(18,41,31,.04)',
           }}
         >
           <Calendar size={17} color={ACCENT} />
-          <span style={{ fontSize: 13.5, fontWeight: 700, color: '#31473C' }}>
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#31473C' }}>
             {new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
           </span>
         </div>
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 12, marginBottom: 14 }}>
         {stats.map((s) => {
           const meta = STATS_META[s.key];
           const Icon = meta.icon;
           return (
-            <div key={s.key} style={{ ...card, padding: '18px 20px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ flex: 'none', width: 46, height: 46, borderRadius: 15, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={22} color={meta.color} />
+            <div key={s.key} style={{ ...card, padding: '13px 15px 11px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 'none', width: 36, height: 36, borderRadius: 12, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={17} color={meta.color} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-1px', color: '#10281C', lineHeight: 1.1 }}>{s.count}</span>
-                  <span style={{ fontSize: 14.5, fontWeight: 800, color: '#2D4038' }}>{s.label}</span>
+                  <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C', lineHeight: 1.05 }}>{s.count}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#2D4038' }}>{s.label}</span>
                 </div>
-                <div style={{ flex: 'none', width: 26, height: 26, borderRadius: '50%', background: meta.bg, color: meta.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ArrowUpRight size={14} />
+                <div style={{ flex: 'none', width: 20, height: 20, borderRadius: '50%', background: meta.bg, color: meta.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ArrowUpRight size={11} />
                 </div>
               </div>
               <span style={{ fontSize: 12.5, fontWeight: 500, color: '#8A978F', marginTop: 12 }}>{s.sub}</span>
@@ -158,40 +158,40 @@ export default function DashboardHome() {
       </div>
 
       {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.52fr) minmax(0,1fr)', gap: 16, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.52fr) minmax(0,1fr)', gap: 12, alignItems: 'start' }}>
         {/* Left column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px 10px' }}>
               <div style={hdrIconStyle}>
-                <Zap size={19} color="#fff" fill="#fff" />
+                <Zap size={15} color="#fff" fill="#fff" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Recent Activity</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#7C8A83', marginTop: 2 }}>Latest rider applications and updates</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#10281C' }}>Recent Activity</div>
+                <div style={{ fontSize: 10.5, fontWeight: 500, color: '#7C8A83', marginTop: 1 }}>Latest rider applications and updates</div>
               </div>
-              <Link href="/admin/dashboard/riders" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 800, color: '#05A85D', textDecoration: 'none' }}>
+              <Link href="/admin/dashboard/riders" style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 800, color: '#05A85D', textDecoration: 'none' }}>
                 View all →
               </Link>
             </div>
-            <div style={{ padding: '0 20px 12px' }}>
+            <div style={{ padding: '0 15px 8px' }}>
               {activity.length === 0 && (
                 <div style={{ padding: '20px 0', fontSize: 13.5, color: '#9AA8A0' }}>No activity yet.</div>
               )}
               {activity.map((a) => {
                 const pill = PILLS[a.status] || PILLS.pending;
                 return (
-                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 0', borderBottom: '1px solid #F1F4F2' }}>
-                    <div style={{ flex: 'none', width: 38, height: 38, borderRadius: '50%', background: '#E3EEFB', color: '#2E5C86', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800 }}>
+                  <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderBottom: '1px solid #F1F4F2' }}>
+                    <div style={{ flex: 'none', width: 30, height: 30, borderRadius: '50%', background: '#E3EEFB', color: '#2E5C86', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 800 }}>
                       {initials(a.full_name)}
                     </div>
                     <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <span style={{ fontSize: 14, fontWeight: 600, color: '#3A4C43' }}>
+                      <span style={{ fontSize: 11.5, fontWeight: 600, color: '#3A4C43' }}>
                         {activityVerb(a.status)}: <strong style={{ fontWeight: 800, color: '#10281C' }}>{a.full_name || 'Rider'}</strong>
                       </span>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: '#9AA8A0' }}>{relativeTime(a.submitted_at)}</span>
+                      <span style={{ fontSize: 9.5, fontWeight: 500, color: '#9AA8A0' }}>{relativeTime(a.submitted_at)}</span>
                     </div>
-                    <span style={{ fontSize: 12, fontWeight: 800, padding: '5px 12px', borderRadius: 999, color: pill.c, background: pill.bg }}>
+                    <span style={{ fontSize: 10.5, fontWeight: 800, padding: '4px 10px', borderRadius: 999, color: pill.c, background: pill.bg }}>
                       {a.status.charAt(0).toUpperCase() + a.status.slice(1)}
                     </span>
                   </div>
@@ -201,64 +201,64 @@ export default function DashboardHome() {
           </div>
 
           {/* Banner */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 22px', borderRadius: 18, background: 'linear-gradient(100deg,#EAF9F0,#F2FBF6)', border: '1px solid #CFEDDD' }}>
-            <div style={{ flex: 'none', width: 52, height: 52, borderRadius: 16, background: '#D7F3E4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={26} color="#05A85D" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', borderRadius: 14, background: 'linear-gradient(100deg,#EAF9F0,#F2FBF6)', border: '1px solid #CFEDDD' }}>
+            <div style={{ flex: 'none', width: 40, height: 40, borderRadius: 12, background: '#D7F3E4', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Users size={19} color="#05A85D" />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '-.4px', color: '#10281C' }}>More Riders. More Opportunities.</div>
-              <div style={{ fontSize: 13.5, fontWeight: 500, color: '#5D6C65', marginTop: 5 }}>Help us grow our delivery network by onboarding more reliable riders.</div>
+              <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-.2px', color: '#10281C' }}>More Riders. More Opportunities.</div>
+              <div style={{ fontSize: 10.5, fontWeight: 500, color: '#5D6C65', marginTop: 2 }}>Help us grow our delivery network by onboarding more reliable riders.</div>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
               style={{
                 flex: 'none',
-                height: 48,
-                padding: '0 22px',
+                height: 40,
+                padding: '0 16px',
                 border: 'none',
-                borderRadius: 14,
+                borderRadius: 12,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 9,
-                fontSize: 14.5,
+                gap: 7,
+                fontSize: 12.5,
                 fontWeight: 800,
                 color: '#fff',
                 cursor: 'pointer',
                 background: `linear-gradient(100deg,#0BAE5E,${ACCENT})`,
-                boxShadow: '0 10px 22px rgba(5,193,106,.26)',
+                boxShadow: '0 8px 16px rgba(5,193,106,.26)',
               }}
             >
-              <Link2 size={17} /> Generate Link
+              <Link2 size={14} /> Generate Link
             </button>
           </div>
 
           <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px 10px' }}>
               <div style={hdrIconStyle}>
-                <BarChart3 size={19} color="#fff" />
+                <BarChart3 size={15} color="#fff" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Quick Stats</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#7C8A83', marginTop: 2 }}>Rider applications for the last 7 days</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#10281C' }}>Quick Stats</div>
+                <div style={{ fontSize: 10.5, fontWeight: 500, color: '#7C8A83', marginTop: 1 }}>Rider applications for the last 7 days</div>
               </div>
             </div>
-            <div style={{ padding: '8px 20px 20px' }}>
+            <div style={{ padding: '4px 15px 14px' }}>
               {(() => {
                 const max = Math.max(1, ...weekly.map((w) => w.v));
                 return (
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 150 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 84 }}>
                     {weekly.map((w, i) => (
                       <div key={i} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
                         <div
                           style={{
                             width: '100%',
-                            height: Math.round((w.v / max) * 118) + 2,
+                            height: Math.round((w.v / max) * 66) + 2,
                             borderRadius: '6px 6px 3px 3px',
                             background: `linear-gradient(180deg,#3ED68C,${ACCENT})`,
                           }}
                         />
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#8A978F' }}>{w.d}</span>
+                        <span style={{ fontSize: 8.5, fontWeight: 700, color: '#8A978F' }}>{w.d}</span>
                       </div>
                     ))}
                   </div>
@@ -269,52 +269,52 @@ export default function DashboardHome() {
         </div>
 
         {/* Right column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 0 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '18px 20px 14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px 10px' }}>
               <div style={hdrIconStyle}>
                 <Link2 size={19} color="#fff" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Rider Onboarding</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#7C8A83', marginTop: 2 }}>Create a registration link to share with new riders.</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#10281C' }}>Rider Onboarding</div>
+                <div style={{ fontSize: 10.5, fontWeight: 500, color: '#7C8A83', marginTop: 1 }}>Create a registration link to share with new riders.</div>
               </div>
             </div>
-            <div style={{ padding: '6px 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ padding: '4px 15px 14px', display: 'flex', flexDirection: 'column', gap: 11 }}>
               <button
                 onClick={() => setShowAddModal(true)}
                 style={{
                   width: '100%',
-                  height: 54,
+                  height: 42,
                   border: 'none',
-                  borderRadius: 15,
+                  borderRadius: 12,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: 10,
-                  fontSize: 15,
+                  gap: 8,
+                  fontSize: 13,
                   fontWeight: 800,
                   color: '#fff',
                   cursor: 'pointer',
                   background: `linear-gradient(100deg,#0BAE5E,${ACCENT})`,
-                  boxShadow: '0 10px 22px rgba(5,193,106,.26)',
+                  boxShadow: '0 8px 16px rgba(5,193,106,.26)',
                 }}
               >
-                <PlusCircle size={18} /> Generate Onboarding Link
+                <PlusCircle size={15} /> Generate Onboarding Link
               </button>
 
-              <div style={{ padding: '16px 16px 14px', borderRadius: 15, background: '#F5F9F6', border: '1px solid #E7EEE9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
-                  <div style={{ width: 24, height: 24, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 13, fontWeight: 800 }}>i</div>
-                  <span style={{ fontSize: 13.5, fontWeight: 800, color: '#2D4038' }}>How it works?</span>
+              <div style={{ padding: '11px 12px 10px', borderRadius: 12, background: '#F5F9F6', border: '1px solid #E7EEE9' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+                  <div style={{ width: 19, height: 19, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10.5, fontWeight: 800 }}>i</div>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, color: '#2D4038' }}>How it works?</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {HOW_IT_WORKS.map((text, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                      <span style={{ flex: 'none', width: 22, height: 22, borderRadius: '50%', background: ACCENT, color: '#fff', fontSize: 11.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ flex: 'none', width: 17, height: 17, borderRadius: '50%', background: ACCENT, color: '#fff', fontSize: 9.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {i + 1}
                       </span>
-                      <span style={{ fontSize: 13, lineHeight: 1.4, fontWeight: 500, color: '#4E5D56' }}>{text}</span>
+                      <span style={{ fontSize: 10, lineHeight: 1.3, fontWeight: 500, color: '#4E5D56' }}>{text}</span>
                     </div>
                   ))}
                 </div>
