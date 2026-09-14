@@ -19,16 +19,16 @@ const card = {
   overflow: 'hidden',
 };
 
-const infoRow = { display: 'grid', gridTemplateColumns: '26px 150px 1fr 20px', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F1F4F2' };
-const infoLabel = { fontSize: 13, fontWeight: 600, color: '#7C8A83' };
-const infoValue = { fontSize: 13.5, fontWeight: 700, color: '#1B332A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+const infoRow = { display: 'grid', gridTemplateColumns: '26px 150px 1fr 20px', gap: 12, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #F1F4F2' };
+const infoLabel = { fontSize: 11.5, fontWeight: 600, color: '#7C8A83' };
+const infoValue = { fontSize: 12, fontWeight: 700, color: '#1B332A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
 
-const detailBtnBase = { display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 16px', borderRadius: 12, fontFamily: FONT, fontSize: 13.5, fontWeight: 800, cursor: 'pointer', border: 'none' };
+const detailBtnBase = { display: 'inline-flex', alignItems: 'center', gap: 8, height: 34, padding: '0 12px', borderRadius: 10, fontFamily: FONT, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', border: 'none' };
 const detailBtn = { ...detailBtnBase, background: '#fff', border: '1px solid #DCE6E0', color: '#2D4038' };
 const detailBtnOff = { ...detailBtnBase, background: '#F4F7F5', border: '1px solid #E7ECE8', color: '#B2BEB7', cursor: 'not-allowed' };
 const detailBtnDanger = { ...detailBtnBase, background: '#fff', border: '1px solid #F3CFD2', color: '#D4494E' };
 
-const idCardStyle = { display: 'flex', flexDirection: 'column', gap: 3, padding: '9px 10px', borderRadius: 9, background: '#F0F3F1', border: '1px solid #DDE5E0' };
+const idCardStyle = { display: 'flex', flexDirection: 'column', gap: 3, padding: '7px 8px', borderRadius: 8, background: '#F0F3F1', border: '1px solid #DDE5E0' };
 
 const editInputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E2E9E4', background: '#F7FBF8', color: '#10281C', fontSize: 14, marginBottom: 10, boxSizing: 'border-box', fontFamily: FONT };
 const editLabelStyle = { fontSize: 12, fontWeight: 700, color: '#7C8A83', marginBottom: 4, display: 'block' };
@@ -147,7 +147,7 @@ function MapBox({ lat, lng }) {
   const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div style={{ position: 'relative', width: '100%', height: 138, borderRadius: 13, overflow: 'hidden', border: '1px solid #DFE7E2', background: '#EAEFEB' }}>
+      <div style={{ position: 'relative', width: '100%', height: 108, borderRadius: 11, overflow: 'hidden', border: '1px solid #DFE7E2', background: '#EAEFEB' }}>
         <iframe
           title="location"
           src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
@@ -158,7 +158,7 @@ function MapBox({ lat, lng }) {
         href={mapsLink}
         target="_blank"
         rel="noreferrer"
-        style={{ width: '100%', height: 44, borderRadius: 12, background: '#fff', border: '1px solid #AEE4C6', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: '#04763F', cursor: 'pointer', boxSizing: 'border-box', textDecoration: 'none' }}
+        style={{ width: '100%', height: 36, borderRadius: 10, background: '#fff', border: '1px solid #AEE4C6', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: FONT, fontSize: 11.5, fontWeight: 800, color: '#04763F', cursor: 'pointer', boxSizing: 'border-box', textDecoration: 'none' }}
       >
         <MapPin size={15} /> Open in Google Maps <ExternalLink size={13} />
       </a>
@@ -169,7 +169,7 @@ function MapBox({ lat, lng }) {
 function DocThumb({ label, docLabel, signedUrl, onView }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0 }}>
-      <span style={{ fontSize: 13, fontWeight: 800, color: '#2D4038' }}>{label}</span>
+      <span style={{ fontSize: 11.5, fontWeight: 800, color: '#2D4038' }}>{label}</span>
       <div style={idCardStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
           <span style={{ width: 13, height: 9, background: 'linear-gradient(90deg,#CE1126 33%,#FCD116 33% 66%,#006B3F 66%)', borderRadius: 1 }} />
@@ -178,17 +178,17 @@ function DocThumb({ label, docLabel, signedUrl, onView }) {
         <span style={{ fontSize: 9, fontWeight: 800, color: '#04763F' }}>{docLabel}</span>
         <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
           {signedUrl ? (
-            <img src={signedUrl} alt={label} onClick={() => onView(signedUrl, label)} style={{ flex: 'none', width: 60, height: 50, objectFit: 'cover', borderRadius: 3, border: '1px solid #C3CEC8', cursor: 'zoom-in' }} />
+            <img src={signedUrl} alt={label} onClick={() => onView(signedUrl, label)} style={{ flex: 'none', width: 48, height: 40, objectFit: 'cover', borderRadius: 3, border: '1px solid #C3CEC8', cursor: 'zoom-in' }} />
           ) : (
-            <div style={{ flex: 'none', width: 42, height: 50, borderRadius: 3, background: '#D6DEDA', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #C3CEC8' }}>
+            <div style={{ flex: 'none', width: 34, height: 40, borderRadius: 3, background: '#D6DEDA', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #C3CEC8' }}>
               <FileText size={16} color="#7C8A83" />
             </div>
           )}
         </div>
       </div>
       {signedUrl && (
-        <span onClick={() => onView(signedUrl, label)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 800, color: '#04763F', cursor: 'pointer' }}>
-          <ExternalLink size={14} /> View full size
+        <span onClick={() => onView(signedUrl, label)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 800, color: '#04763F', cursor: 'pointer' }}>
+          <ExternalLink size={12} /> View full size
         </span>
       )}
     </div>
@@ -315,25 +315,25 @@ export default function RiderDetailPage() {
     : [];
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '22px 26px 26px', display: 'flex', flexDirection: 'column', gap: 16, fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
       <div style={card}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 22px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 'none', width: 66, height: 66, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 22, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', flexWrap: 'wrap' }}>
+          <div style={{ flex: 'none', width: 50, height: 50, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 17, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {initials(rider.full_name)}
           </div>
           <div style={{ flex: 1, minWidth: 200 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-1px', color: '#10281C' }}>{rider.full_name || 'Rider'}</h1>
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 999, fontSize: 12.5, fontWeight: 800, color: statusPill.c, background: statusPill.bg, border: `1px solid ${statusPill.b}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C' }}>{rider.full_name || 'Rider'}</h1>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 800, color: statusPill.c, background: statusPill.bg, border: `1px solid ${statusPill.b}` }}>
                 {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
               </span>
               {rider.archived && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '7px 15px', borderRadius: 999, fontSize: 12.5, fontWeight: 800, color: '#5D6C65', background: '#EEF2EF' }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 800, color: '#5D6C65', background: '#EEF2EF' }}>
                   Archived
                 </span>
               )}
             </div>
-            <p style={{ margin: '7px 0 0', fontSize: 13.5, fontWeight: 600, color: '#7C8A83' }}>
+            <p style={{ margin: '5px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7C8A83' }}>
               Rider ID: {formatRiderId(rider.rider_number)} &nbsp;•&nbsp; Registered on {new Date(rider.created_at || rider.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
             </p>
           </div>
@@ -404,13 +404,13 @@ export default function RiderDetailPage() {
         </>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.95fr)', gap: 16, alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.95fr)', gap: 12, alignItems: 'start' }}>
             <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 6px' }}>
-                <User size={21} color={ACCENT} />
-                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Personal Information</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 15px 4px' }}>
+                <User size={16} color={ACCENT} />
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Personal Information</span>
               </div>
-              <div style={{ padding: '2px 20px 14px' }}>
+              <div style={{ padding: '2px 15px 10px' }}>
                 {personalRows.map((r) => (
                   <div key={r.label} style={infoRow}>
                     <r.icon size={16} color="#8A978F" />
@@ -423,22 +423,22 @@ export default function RiderDetailPage() {
             </div>
 
             <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
-                <FileText size={21} color={ACCENT} />
-                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Documents</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 15px 8px' }}>
+                <FileText size={16} color={ACCENT} />
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Documents</span>
               </div>
-              <div style={{ padding: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+              <div style={{ padding: '0 15px 12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 <DocThumb label="Ghana Card" docLabel="Ghana Card" signedUrl={rider.ghana_id_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
                 <DocThumb label="Driving License" docLabel="Driver Licence" signedUrl={rider.license_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
               </div>
             </div>
 
             <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
-                <MapPin size={21} color={ACCENT} />
-                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Location</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 15px 8px' }}>
+                <MapPin size={16} color={ACCENT} />
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Location</span>
               </div>
-              <div style={{ padding: '0 20px 18px' }}>
+              <div style={{ padding: '0 15px 12px' }}>
                 {rider.latitude ? <MapBox lat={rider.latitude} lng={rider.longitude} /> : <span style={{ fontSize: 13, color: '#9AA8A0' }}>No location on file.</span>}
               </div>
             </div>
@@ -446,12 +446,12 @@ export default function RiderDetailPage() {
 
           {guarantor && (
             <div style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
-                <User size={21} color={ACCENT} />
-                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Guarantor Information</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 15px 8px' }}>
+                <User size={16} color={ACCENT} />
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Guarantor Information</span>
               </div>
-              <div style={{ padding: '0 20px 20px', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,.85fr) minmax(0,.85fr)', gap: 16, alignItems: 'start' }}>
-                <div style={{ padding: '4px 16px 10px', borderRadius: 15, background: '#F3FAF6', border: '1px solid #DCEFE4' }}>
+              <div style={{ padding: '0 20px 20px', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,.85fr) minmax(0,.85fr)', gap: 12, alignItems: 'start' }}>
+                <div style={{ padding: '3px 12px 8px', borderRadius: 12, background: '#F3FAF6', border: '1px solid #DCEFE4' }}>
                   {guarantorRows.map((r) => (
                     <div key={r.label} style={infoRow}>
                       <r.icon size={16} color="#8A978F" />
@@ -461,11 +461,11 @@ export default function RiderDetailPage() {
                     </div>
                   ))}
                 </div>
-                <div style={{ padding: 14, borderRadius: 15, border: '1px solid #E7ECE8' }}>
+                <div style={{ padding: 10, borderRadius: 12, border: '1px solid #E7ECE8' }}>
                   <DocThumb label="Ghana Card (Guarantor)" docLabel="Ghana Card" signedUrl={guarantor.ghana_id_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
                 </div>
-                <div style={{ padding: 14, borderRadius: 15, border: '1px solid #E7ECE8' }}>
-                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2D4038', display: 'block', marginBottom: 9 }}>Guarantor Location</span>
+                <div style={{ padding: 10, borderRadius: 12, border: '1px solid #E7ECE8' }}>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#2D4038', display: 'block', marginBottom: 7 }}>Guarantor Location</span>
                   {guarantor.latitude ? <MapBox lat={guarantor.latitude} lng={guarantor.longitude} /> : <span style={{ fontSize: 13, color: '#9AA8A0' }}>No location on file.</span>}
                 </div>
               </div>
@@ -473,15 +473,15 @@ export default function RiderDetailPage() {
           )}
 
           {rider.status === 'rejected' && rider.rejection_reason && (
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '18px 20px', borderRadius: 16, background: '#FDF2F3', border: '1px solid #F6D6D8', borderLeft: '5px solid #E5484D' }}>
-              <div style={{ flex: 'none', width: 34, height: 34, borderRadius: 11, background: '#FBDDDF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <AlertCircle size={19} color="#E5484D" />
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 11, padding: '13px 15px', borderRadius: 13, background: '#FDF2F3', border: '1px solid #F6D6D8', borderLeft: '5px solid #E5484D' }}>
+              <div style={{ flex: 'none', width: 28, height: 28, borderRadius: 9, background: '#FBDDDF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertCircle size={15} color="#E5484D" />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 15.5, fontWeight: 800, color: '#C13239' }}>Rejection Reason</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: '#8A4145', marginTop: 6 }}>{rider.rejection_reason}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: '#C13239' }}>Rejection Reason</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#8A4145', marginTop: 4 }}>{rider.rejection_reason}</div>
                 {rider.reviewed_at && (
-                  <div style={{ fontSize: 12, fontWeight: 500, color: '#B08085', marginTop: 9 }}>
+                  <div style={{ fontSize: 10.5, fontWeight: 500, color: '#B08085', marginTop: 6 }}>
                     Rejected on {new Date(rider.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
                   </div>
                 )}

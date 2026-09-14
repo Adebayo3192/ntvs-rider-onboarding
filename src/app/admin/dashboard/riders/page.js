@@ -95,27 +95,27 @@ export default function RidersPage() {
   ];
 
   const tabStyle = (active) => ({
-    padding: '8px 18px',
-    borderRadius: 11,
+    padding: '6px 14px',
+    borderRadius: 9,
     border: 'none',
     background: active ? ACCENT : 'transparent',
     color: active ? '#fff' : '#5D6C65',
     fontWeight: 700,
-    fontSize: 13.5,
+    fontSize: 12,
     cursor: 'pointer',
     fontFamily: FONT,
   });
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '26px 30px 30px', fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 24px 20px', fontFamily: FONT }}>
       {/* Page header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 22 }}>
-        <div style={{ flex: 'none', width: 54, height: 54, borderRadius: 17, background: '#DCF4E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <Users size={26} color={ACCENT} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+        <div style={{ flex: 'none', width: 40, height: 40, borderRadius: 13, background: '#DCF4E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Users size={19} color={ACCENT} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h1 style={{ margin: 0, fontSize: 32, fontWeight: 800, letterSpacing: '-1px', color: '#10281C' }}>Riders</h1>
-          <p style={{ margin: '6px 0 0', fontSize: 14.5, fontWeight: 500, color: '#6E7D76' }}>
+          <h1 style={{ margin: 0, fontSize: 21, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C' }}>Riders</h1>
+          <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: '#6E7D76' }}>
             Manage rider onboarding, track status and keep your delivery team active.
           </p>
         </div>
@@ -123,16 +123,16 @@ export default function RidersPage() {
           onClick={() => setShowAddModal(true)}
           style={{
             flex: 'none',
-            height: 52,
-            padding: '0 24px',
+            height: 40,
+            padding: '0 18px',
             border: 'none',
-            borderRadius: 15,
+            borderRadius: 12,
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: 10,
+            gap: 7,
             fontFamily: FONT,
-            fontSize: 15,
+            fontSize: 12.5,
             fontWeight: 800,
             color: '#fff',
             background: `linear-gradient(100deg,#0BAE5E,${ACCENT})`,
@@ -145,43 +145,43 @@ export default function RidersPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 16, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 12, marginBottom: 14 }}>
         {stats.map((s) => {
           const meta = STATS_META[s.key];
           const Icon = meta.icon;
           return (
-            <div key={s.key} style={{ ...card, padding: '18px 20px 16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <div style={{ flex: 'none', width: 46, height: 46, borderRadius: 15, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon size={20} color={meta.color} fill={meta.color} />
+            <div key={s.key} style={{ ...card, padding: '13px 15px 11px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div style={{ flex: 'none', width: 36, height: 36, borderRadius: 12, background: meta.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={15} color={meta.color} fill={meta.color} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <span style={{ fontSize: 30, fontWeight: 800, letterSpacing: '-1px', color: '#10281C', lineHeight: 1.1 }}>{s.count}</span>
-                  <span style={{ fontSize: 14.5, fontWeight: 800, color: '#2D4038' }}>{s.label}</span>
+                  <span style={{ fontSize: 19, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C', lineHeight: 1.05 }}>{s.count}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: '#2D4038' }}>{s.label}</span>
                 </div>
               </div>
-              <span style={{ fontSize: 12.5, fontWeight: 500, color: '#8A978F', marginTop: 12, display: 'block' }}>{s.sub}</span>
+              <span style={{ fontSize: 12.5, fontWeight: 500, color: '#8A978F', marginTop: 7, display: 'block' }}>{s.sub}</span>
             </div>
           );
         })}
       </div>
 
       {/* Active/Archived tabs */}
-      <div style={{ display: 'flex', gap: 6, marginBottom: 18, background: '#EEF3EF', padding: 4, borderRadius: 13, width: 'fit-content' }}>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, background: '#EEF3EF', padding: 3, borderRadius: 11, width: 'fit-content' }}>
         <button onClick={() => setViewArchived(false)} style={tabStyle(!viewArchived)}>Active</button>
         <button onClick={() => setViewArchived(true)} style={tabStyle(viewArchived)}>Archived</button>
       </div>
 
       {/* Search + filter row */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 18 }}>
-        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 11, height: 50, padding: '0 16px', borderRadius: 14, background: '#fff', border: '1px solid #E2E9E4', boxSizing: 'border-box' }}>
-          <Search size={19} color="#9AA8A0" style={{ flex: 'none' }} />
+      <div style={{ display: 'flex', gap: 10, marginBottom: 12 }}>
+        <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 9, height: 40, padding: '0 13px', borderRadius: 12, background: '#fff', border: '1px solid #E2E9E4', boxSizing: 'border-box' }}>
+          <Search size={15} color="#9AA8A0" style={{ flex: 'none' }} />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or phone..."
-            style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontFamily: FONT, fontSize: 15, fontWeight: 500, color: '#10281C', outline: 'none' }}
+            style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontFamily: FONT, fontSize: 13, fontWeight: 500, color: '#10281C', outline: 'none' }}
           />
         </div>
 
@@ -190,12 +190,12 @@ export default function RidersPage() {
           onChange={(e) => setStatus(e.target.value)}
           style={{
             flex: 'none',
-            height: 50,
-            padding: '0 15px',
-            borderRadius: 14,
+            height: 40,
+            padding: '0 12px',
+            borderRadius: 12,
             background: '#fff',
             border: '1px solid #E2E9E4',
-            fontSize: 13.5,
+            fontSize: 12,
             fontWeight: 700,
             color: '#3A4C43',
             fontFamily: FONT,
@@ -211,12 +211,12 @@ export default function RidersPage() {
 
       {/* Table */}
       <div style={card}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 12, padding: '14px 22px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Name</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Phone</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Status</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Date Submitted</span>
-          <span style={{ fontSize: 12.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Actions</span>
+        <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '10px 16px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Name</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Phone</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Status</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Date Submitted</span>
+          <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Actions</span>
         </div>
 
         {loading && <div style={{ padding: 24, textAlign: 'center', color: '#9AA8A0', fontSize: 13.5 }}>Loading...</div>}
@@ -232,20 +232,20 @@ export default function RidersPage() {
           const av = tintFor(r.id);
           const date = r.submitted_at ? new Date(r.submitted_at) : null;
           return (
-            <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 12, padding: '13px 22px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                <div style={{ flex: 'none', width: 40, height: 40, borderRadius: '50%', background: av.tint, color: av.ink, fontSize: 13, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '9px 16px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
+                <div style={{ flex: 'none', width: 32, height: 32, borderRadius: '50%', background: av.tint, color: av.ink, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {initials(r.full_name)}
                 </div>
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <span style={{ fontSize: 14, fontWeight: 800, color: '#10281C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.full_name || '—'}</span>
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: '#8A978F' }}>Rider ID: {formatRiderId(r.rider_number)}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: '#10281C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.full_name || '—'}</span>
+                  <span style={{ fontSize: 10, fontWeight: 600, color: '#8A978F' }}>Rider ID: {formatRiderId(r.rider_number)}</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
                 <Phone size={14} color={ACCENT} style={{ flex: 'none' }} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: '#2D4038', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.phone || '—'}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: '#2D4038', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.phone || '—'}</span>
                 {r.phone && (
                   copiedId === r.id ? (
                     <Check size={14} color={ACCENT} style={{ flex: 'none' }} />
@@ -256,14 +256,14 @@ export default function RidersPage() {
               </div>
 
               <div>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '6px 14px', borderRadius: 999, fontSize: 12.5, fontWeight: 800, color: pill.c, background: pill.bg, border: `1px solid ${pill.b}` }}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '4px 11px', borderRadius: 999, fontSize: 11, fontWeight: 800, color: pill.c, background: pill.bg, border: `1px solid ${pill.b}` }}>
                   {r.status.charAt(0).toUpperCase() + r.status.slice(1)}
                 </span>
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#2D4038' }}>
-                  <Calendar size={14} color="#8A978F" />
+                <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, fontWeight: 700, color: '#2D4038' }}>
+                  <Calendar size={12} color="#8A978F" />
                   {date ? date.toLocaleDateString() : '—'}
                 </span>
               </div>
@@ -271,9 +271,9 @@ export default function RidersPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Link
                   href={`/admin/dashboard/riders/${r.id}`}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: 7, height: 36, padding: '0 14px', borderRadius: 11, background: '#fff', border: '1px solid #DCE6E0', fontFamily: FONT, fontSize: 12.5, fontWeight: 800, color: '#2D4038', cursor: 'pointer', textDecoration: 'none' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, background: '#fff', border: '1px solid #DCE6E0', fontFamily: FONT, fontSize: 11, fontWeight: 800, color: '#2D4038', cursor: 'pointer', textDecoration: 'none' }}
                 >
-                  <Eye size={14} color={ACCENT} /> View
+                  <Eye size={12} color={ACCENT} /> View
                 </Link>
               </div>
             </div>
