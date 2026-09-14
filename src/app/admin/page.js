@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: FONT }}>
+    <div style={{ height: '100vh', display: 'flex', fontFamily: FONT, overflow: 'hidden' }}>
       {/* Left branding panel */}
       <div
         style={{
@@ -77,9 +77,11 @@ export default function AdminLoginPage() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          padding: '36px 48px 0',
+          padding: '22px 48px 0',
           position: 'relative',
           overflow: 'hidden',
+          height: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <img
@@ -104,7 +106,7 @@ export default function AdminLoginPage() {
         <img
           src="/sidebar-illustration.svg"
           alt=""
-          style={{ width: 'calc(100% + 96px)', margin: '0 -48px 0', display: 'block' }}
+          style={{ width: 'calc(100% + 96px)', maxHeight: 120, objectFit: 'cover', objectPosition: 'bottom', margin: '0 -48px 0', display: 'block' }}
         />
 
         <div
@@ -113,7 +115,7 @@ export default function AdminLoginPage() {
             margin: '0 -48px 0',
             display: 'flex',
             alignItems: 'center',
-            padding: '10px 30px',
+            padding: '8px 30px',
             background: '#0B2418',
           }}
         >
@@ -152,13 +154,16 @@ export default function AdminLoginPage() {
       <div
         style={{
           flex: 1,
+          height: '100%',
           background: '#F7FBF8',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 24,
           position: 'relative',
-          overflow: 'hidden',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          boxSizing: 'border-box',
         }}
       >
         <div
