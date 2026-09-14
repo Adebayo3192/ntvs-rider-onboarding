@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const counts = { pending: 0, approved: 0, rejected: 0 };
+  const counts = { total: data.length, pending: 0, approved: 0, rejected: 0 };
   data.forEach((r) => {
     counts[r.status] = (counts[r.status] || 0) + 1;
   });

@@ -3,36 +3,44 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Pencil, Archive, ArchiveRestore, Trash2, X, CheckCircle2 } from 'lucide-react';
+import {
+  Pencil, Archive, ArchiveRestore, Trash2, X, CheckCircle2, Check,
+  User, Phone, Mail, MapPin, IdCard, Car, FileText, Copy, ExternalLink, AlertCircle,
+} from 'lucide-react';
 
-const statusColors = { pending: '#F5C242', approved: '#05C16A', rejected: '#F5A3A3' };
+const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const ACCENT = '#0FA45C';
 
-const section = { background: 'rgba(255,255,255,0.04)', borderRadius: 16, padding: 20, marginBottom: 20 };
-const row = (label, value) => (
-  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #2A4A38' }}>
-    <span style={{ color: '#7FB89E', fontSize: 13 }}>{label}</span>
-    <span style={{ fontSize: 14 }}>{value || '—'}</span>
-  </div>
-);
+const card = {
+  background: '#fff',
+  borderRadius: 18,
+  border: '1px solid #E7ECE8',
+  boxShadow: '0 2px 10px rgba(18,41,31,.04)',
+  overflow: 'hidden',
+};
+
+const infoRow = { display: 'grid', gridTemplateColumns: '26px 150px 1fr 20px', gap: 12, alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #F1F4F2' };
+const infoLabel = { fontSize: 13, fontWeight: 600, color: '#7C8A83' };
+const infoValue = { fontSize: 13.5, fontWeight: 700, color: '#1B332A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+
+const detailBtnBase = { display: 'inline-flex', alignItems: 'center', gap: 8, height: 42, padding: '0 16px', borderRadius: 12, fontFamily: FONT, fontSize: 13.5, fontWeight: 800, cursor: 'pointer', border: 'none' };
+const detailBtn = { ...detailBtnBase, background: '#fff', border: '1px solid #DCE6E0', color: '#2D4038' };
+const detailBtnOff = { ...detailBtnBase, background: '#F4F7F5', border: '1px solid #E7ECE8', color: '#B2BEB7', cursor: 'not-allowed' };
+const detailBtnDanger = { ...detailBtnBase, background: '#fff', border: '1px solid #F3CFD2', color: '#D4494E' };
+
+const idCardStyle = { display: 'flex', flexDirection: 'column', gap: 3, padding: '9px 10px', borderRadius: 9, background: '#F0F3F1', border: '1px solid #DDE5E0' };
+
+const editInputStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '1px solid #E2E9E4', background: '#F7FBF8', color: '#10281C', fontSize: 14, marginBottom: 10, boxSizing: 'border-box', fontFamily: FONT };
+const editLabelStyle = { fontSize: 12, fontWeight: 700, color: '#7C8A83', marginBottom: 4, display: 'block' };
 
 function formatRiderId(riderNumber) {
   if (!riderNumber) return '—';
   return `R${String(riderNumber).padStart(4, '0')}`;
 }
 
-const editInputStyle = {
-  width: '100%',
-  padding: '10px 12px',
-  borderRadius: 8,
-  border: '1px solid #2A4A38',
-  background: 'rgba(255,255,255,0.06)',
-  color: '#fff',
-  fontSize: 14,
-  marginBottom: 10,
-  boxSizing: 'border-box',
-};
-
-const editLabelStyle = { fontSize: 12, fontWeight: 600, color: '#7FB89E', marginBottom: 4, display: 'block' };
+function initials(name) {
+  return (name || '?').split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+}
 
 const REJECTION_REASONS = [
   'Incomplete or unclear ID/license photo',
@@ -40,7 +48,6 @@ const REJECTION_REASONS = [
   'Guarantor information incomplete or invalid',
   'Ghana Card number invalid or expired',
   'Driving license invalid or expired',
-  'Other',
 ];
 
 function RejectDialog({ onCancel, onConfirm, submitting }) {
@@ -50,46 +57,61 @@ function RejectDialog({ onCancel, onConfirm, submitting }) {
   const finalReason = selected === 'Other' ? customReason.trim() : selected;
   const canSubmit = finalReason.length > 0;
 
-  return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 2000 }}>
-      <div style={{ background: '#173D28', borderRadius: 16, padding: 24, width: '100%', maxWidth: 420, maxHeight: '85vh', overflowY: 'auto' }}>
-        <h2 style={{ fontSize: 18, fontWeight: 800, marginBottom: 16, color: '#fff' }}>Reason for Rejection</h2>
+  const radio = (on) => ({
+    flex: 'none', width: 17, height: 17, borderRadius: '50%', boxSizing: 'border-box',
+    border: `2px solid ${on ? ACCENT : '#C8D3CC'}`,
+    background: on ? ACCENT : '#fff',
+    boxShadow: on ? 'inset 0 0 0 3px #fff' : 'none',
+  });
 
-        {REJECTION_REASONS.map((reason) => (
-          <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', color: '#DCEFE3', fontSize: 14, cursor: 'pointer' }}>
-            <input
-              type="radio"
-              name="rejectionReason"
-              value={reason}
-              checked={selected === reason}
-              onChange={(e) => setSelected(e.target.value)}
-            />
-            {reason}
-          </label>
-        ))}
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(16,40,28,.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 2000, fontFamily: FONT }}>
+      <div style={{ background: '#fff', borderRadius: 18, padding: '20px 22px', width: '100%', maxWidth: 480, boxShadow: '0 26px 60px rgba(14,42,29,.22)', border: '1px solid #E7ECE8' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+            <circle cx="12" cy="12" r="9" stroke="#E5484D" strokeWidth="2" />
+            <path d="M5.8 5.8l12.4 12.4" stroke="#E5484D" strokeWidth="2" />
+          </svg>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Reject Rider</div>
+            <div style={{ fontSize: 12.5, fontWeight: 500, color: '#7C8A83', marginTop: 3 }}>Please select a reason for rejection</div>
+          </div>
+          <X size={18} color="#9AA8A0" style={{ cursor: 'pointer', flex: 'none' }} onClick={onCancel} />
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 18px', marginTop: 16 }}>
+          {REJECTION_REASONS.map((reason) => (
+            <div key={reason} onClick={() => setSelected(reason)} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+              <span style={radio(selected === reason)} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4C43' }}>{reason}</span>
+            </div>
+          ))}
+          <div onClick={() => setSelected('Other')} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+            <span style={radio(selected === 'Other')} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#3A4C43' }}>Other (specify)</span>
+          </div>
+        </div>
 
         {selected === 'Other' && (
-          <textarea
+          <input
+            type="text"
             value={customReason}
             onChange={(e) => setCustomReason(e.target.value)}
-            placeholder="Type the reason..."
-            style={{ width: '100%', minHeight: 80, marginTop: 10, padding: 12, borderRadius: 10, border: '1px solid #2A4A38', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 15, boxSizing: 'border-box' }}
+            placeholder="Enter reason"
+            style={{ width: '100%', boxSizing: 'border-box', height: 44, marginTop: 14, padding: '0 14px', borderRadius: 12, background: '#F7FBF8', border: '1px solid #E2E9E4', fontFamily: FONT, fontSize: 13, fontWeight: 500, color: '#10281C' }}
           />
         )}
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
-          <button
-            onClick={onCancel}
-            style={{ flex: 1, padding: 14, borderRadius: 12, border: '1px solid #2A4A38', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-          >
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 16 }}>
+          <button onClick={onCancel} style={{ height: 46, padding: '0 26px', borderRadius: 13, background: '#F4F7F5', border: '1px solid #E2E9E4', fontFamily: FONT, fontSize: 14, fontWeight: 800, color: '#3A4C43', cursor: 'pointer' }}>
             Cancel
           </button>
           <button
             onClick={() => onConfirm(finalReason)}
             disabled={!canSubmit || submitting}
-            style={{ flex: 1, padding: 14, borderRadius: 12, border: 'none', background: canSubmit ? '#F5A3A3' : '#4a4a4a', color: '#0E2A1D', fontWeight: 700, cursor: canSubmit ? 'pointer' : 'not-allowed' }}
+            style={{ height: 46, padding: '0 26px', borderRadius: 13, border: 'none', background: canSubmit ? '#E5484D' : '#E9C4C6', fontFamily: FONT, fontSize: 14, fontWeight: 800, color: '#fff', cursor: canSubmit ? 'pointer' : 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: 8 }}
           >
-            {submitting ? 'Rejecting...' : 'Confirm Reject'}
+            <X size={15} /> {submitting ? 'Rejecting...' : 'Reject'}
           </button>
         </div>
       </div>
@@ -99,74 +121,76 @@ function RejectDialog({ onCancel, onConfirm, submitting }) {
 
 function ImageLightbox({ src, alt, onClose }) {
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.85)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 24,
-        zIndex: 3000,
-        cursor: 'zoom-out',
-      }}
-    >
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          background: 'rgba(255,255,255,0.1)',
-          border: 'none',
-          borderRadius: '50%',
-          width: 40,
-          height: 40,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: '#fff',
-        }}
-      >
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(10,25,18,.85)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 3000, cursor: 'zoom-out' }}>
+      <button onClick={onClose} style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,.15)', border: 'none', borderRadius: '50%', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}>
         <X size={20} />
       </button>
-      <img
-        src={src}
-        alt={alt}
-        onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 12, objectFit: 'contain', cursor: 'default' }}
-      />
+      <img src={src} alt={alt} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: 12, objectFit: 'contain', cursor: 'default' }} />
     </div>
   );
 }
 
 function SuccessToast({ message }) {
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 24,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        background: '#173D28',
-        border: '1px solid #05C16A',
-        borderRadius: 12,
-        padding: '14px 20px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: 600,
-        zIndex: 4000,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.3)',
-      }}
-    >
-      <CheckCircle2 size={18} color="#05C16A" />
-      {message}
+    <div style={{ position: 'fixed', top: 24, left: '50%', transform: 'translateX(-50%)', display: 'flex', alignItems: 'center', gap: 13, padding: '14px 18px', borderRadius: 15, background: '#fff', border: '1px solid #CFEDDD', borderLeft: `5px solid ${ACCENT}`, boxShadow: '0 10px 26px rgba(18,41,31,.09)', zIndex: 4000, fontFamily: FONT }}>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
+        <circle cx="12" cy="12" r="10" fill="#DCF4E6" />
+        <circle cx="12" cy="12" r="7" fill={ACCENT} />
+        <path d="M8.8 12.2l2.2 2.2 4.2-4.6" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <div style={{ fontSize: 14, fontWeight: 800, color: '#10281C' }}>{message}</div>
+    </div>
+  );
+}
+
+function MapBox({ lat, lng }) {
+  const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <div style={{ position: 'relative', width: '100%', height: 138, borderRadius: 13, overflow: 'hidden', border: '1px solid #DFE7E2', background: '#EAEFEB' }}>
+        <iframe
+          title="location"
+          src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
+          style={{ width: '100%', height: '100%', border: 0 }}
+        />
+      </div>
+      <a
+        href={mapsLink}
+        target="_blank"
+        rel="noreferrer"
+        style={{ width: '100%', height: 44, borderRadius: 12, background: '#fff', border: '1px solid #AEE4C6', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontFamily: FONT, fontSize: 13, fontWeight: 800, color: '#04763F', cursor: 'pointer', boxSizing: 'border-box', textDecoration: 'none' }}
+      >
+        <MapPin size={15} /> Open in Google Maps <ExternalLink size={13} />
+      </a>
+    </div>
+  );
+}
+
+function DocThumb({ label, docLabel, signedUrl, onView }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, minWidth: 0 }}>
+      <span style={{ fontSize: 13, fontWeight: 800, color: '#2D4038' }}>{label}</span>
+      <div style={idCardStyle}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 13, height: 9, background: 'linear-gradient(90deg,#CE1126 33%,#FCD116 33% 66%,#006B3F 66%)', borderRadius: 1 }} />
+          <span style={{ fontSize: 7.5, fontWeight: 800, color: '#1B332A' }}>REPUBLIC OF GHANA</span>
+        </div>
+        <span style={{ fontSize: 9, fontWeight: 800, color: '#04763F' }}>{docLabel}</span>
+        <div style={{ display: 'flex', gap: 8, marginTop: 5 }}>
+          {signedUrl ? (
+            <img src={signedUrl} alt={label} onClick={() => onView(signedUrl, label)} style={{ flex: 'none', width: 60, height: 50, objectFit: 'cover', borderRadius: 3, border: '1px solid #C3CEC8', cursor: 'zoom-in' }} />
+          ) : (
+            <div style={{ flex: 'none', width: 42, height: 50, borderRadius: 3, background: '#D6DEDA', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #C3CEC8' }}>
+              <FileText size={16} color="#7C8A83" />
+            </div>
+          )}
+        </div>
+      </div>
+      {signedUrl && (
+        <span onClick={() => onView(signedUrl, label)} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 800, color: '#04763F', cursor: 'pointer' }}>
+          <ExternalLink size={14} /> View full size
+        </span>
+      )}
     </div>
   );
 }
@@ -189,9 +213,7 @@ export default function RiderDetailPage() {
     setData(json);
   };
 
-  useEffect(() => {
-    load();
-  }, [id]);
+  useEffect(() => { load(); }, [id]);
 
   const startEditing = () => {
     setEditForm({
@@ -214,28 +236,17 @@ export default function RiderDetailPage() {
     setEditing(true);
   };
 
-  const updateField = (field) => (e) => {
-    setEditForm({ ...editForm, [field]: e.target.value });
-  };
-
-  const updateGuarantorField = (field) => (e) => {
-    setEditForm({ ...editForm, guarantor: { ...editForm.guarantor, [field]: e.target.value } });
-  };
+  const updateField = (field) => (e) => setEditForm({ ...editForm, [field]: e.target.value });
+  const updateGuarantorField = (field) => (e) => setEditForm({ ...editForm, guarantor: { ...editForm.guarantor, [field]: e.target.value } });
 
   const goBackWithMessage = (message) => {
     setToastMessage(message);
-    setTimeout(() => {
-      router.push('/admin/dashboard/riders');
-    }, 1200);
+    setTimeout(() => router.push('/admin/dashboard/riders'), 1200);
   };
 
   const handleSave = async () => {
     setSaving(true);
-    await fetch(`/api/admin/riders/${id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm),
-    });
+    await fetch(`/api/admin/riders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
     setSaving(false);
     setEditing(false);
     load();
@@ -245,22 +256,14 @@ export default function RiderDetailPage() {
   const handleApprove = async () => {
     if (!confirm('Are you sure you want to approve this rider?')) return;
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' }),
-    });
+    await fetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'approved' }) });
     setActing(false);
     goBackWithMessage('Rider approved');
   };
 
   const handleReject = async (reason) => {
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rejected', reason }),
-    });
+    await fetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected', reason }) });
     setActing(false);
     setShowRejectDialog(false);
     goBackWithMessage('Rider rejected');
@@ -268,257 +271,228 @@ export default function RiderDetailPage() {
 
   const handleArchiveToggle = async () => {
     const nextArchived = !data.rider.archived;
-    const label = nextArchived ? 'archive' : 'unarchive';
-    if (!confirm(`Are you sure you want to ${label} this rider?`)) return;
-
+    if (!confirm(`Are you sure you want to ${nextArchived ? 'archive' : 'unarchive'} this rider?`)) return;
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/archive`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ archived: nextArchived }),
-    });
+    await fetch(`/api/admin/riders/${id}/archive`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived: nextArchived }) });
     setActing(false);
     goBackWithMessage(nextArchived ? 'Rider archived' : 'Rider unarchived');
   };
 
   const handleDelete = async () => {
     if (!confirm('This will permanently delete this rider and their guarantor. This cannot be undone. Are you sure?')) return;
-
     setActing(true);
     await fetch(`/api/admin/riders/${id}`, { method: 'DELETE' });
     goBackWithMessage('Rider deleted');
   };
 
   if (!data) {
-    return <div style={{ minHeight: '100vh', background: '#0E2A1D', color: '#7FB89E', padding: 32 }}>Loading...</div>;
+    return <div style={{ padding: 32, color: '#9AA8A0', fontFamily: FONT }}>Loading...</div>;
   }
 
   const { rider, guarantor } = data;
-  const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+  const av = { bg: '#DCF4E6', ink: '#04763F' };
+  const statusPill = {
+    pending: { c: '#8A6100', bg: '#FDF0D4', b: '#F5DFA8' },
+    approved: { c: '#04763F', bg: '#DCF4E6', b: '#AEE4C6' },
+    rejected: { c: '#C13239', bg: '#FDE4E6', b: '#F6C6C9' },
+  }[rider.status];
 
-  const thumbStyle = { width: 100, height: 100, objectFit: 'cover', borderRadius: 8, cursor: 'zoom-in' };
+  const personalRows = [
+    { icon: Phone, label: 'Phone', value: rider.phone },
+    { icon: Mail, label: 'Email', value: rider.email },
+    { icon: MapPin, label: 'Address', value: rider.address },
+    { icon: IdCard, label: 'Ghana Card Number', value: rider.ghana_id_number },
+    { icon: Car, label: 'Driving License Number', value: rider.license_number },
+  ];
+
+  const guarantorRows = guarantor
+    ? [
+        { icon: User, label: 'Full Name', value: guarantor.full_name },
+        { icon: Phone, label: 'Phone', value: guarantor.phone },
+        { icon: MapPin, label: 'Address', value: guarantor.address },
+        { icon: IdCard, label: 'Ghana Card Number', value: guarantor.ghana_id_number },
+      ]
+    : [];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: '32px 24px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <Link href="/admin/dashboard/riders" style={{ color: '#7FB89E', fontSize: 14, textDecoration: 'none' }}>
-          ← Back to Riders
-        </Link>
-
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '16px 0 8px' }}>
-          <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800 }}>{rider.full_name || 'Rider'}</h1>
-            <div style={{ fontSize: 13, color: '#7FB89E', marginTop: 2 }}>{formatRiderId(rider.rider_number)}</div>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '22px 26px 26px', display: 'flex', flexDirection: 'column', gap: 16, fontFamily: FONT }}>
+      <div style={card}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 18, padding: '20px 22px', flexWrap: 'wrap' }}>
+          <div style={{ flex: 'none', width: 66, height: 66, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 22, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            {initials(rider.full_name)}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ background: statusColors[rider.status], color: '#0E2A1D', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
-              {rider.status}
-            </span>
-            {rider.archived && (
-              <span style={{ background: '#4a4a4a', color: '#DCEFE3', fontWeight: 700, fontSize: 13, padding: '6px 14px', borderRadius: 999 }}>
-                Archived
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, letterSpacing: '-1px', color: '#10281C' }}>{rider.full_name || 'Rider'}</h1>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '7px 15px', borderRadius: 999, fontSize: 12.5, fontWeight: 800, color: statusPill.c, background: statusPill.bg, border: `1px solid ${statusPill.b}` }}>
+                {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
               </span>
-            )}
-            {!editing && rider.status === 'pending' && (
-              <button
-                onClick={startEditing}
-                style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #2A4A38', background: 'transparent', color: '#DCEFE3', fontSize: 13, cursor: 'pointer' }}
-              >
-                <Pencil size={14} /> Edit
-              </button>
-            )}
-          </div>
-        </div>
-
-        {!editing && (
-          <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-            <button
-              onClick={handleArchiveToggle}
-              disabled={acting}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #2A4A38', background: 'transparent', color: '#DCEFE3', fontSize: 13, cursor: 'pointer' }}
-            >
-              {rider.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
-              {rider.archived ? 'Unarchive' : 'Archive'}
-            </button>
-            <button
-              onClick={handleDelete}
-              disabled={acting}
-              style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10, border: '1px solid #5A2A2A', background: 'transparent', color: '#F5A3A3', fontSize: 13, cursor: 'pointer' }}
-            >
-              <Trash2 size={14} /> Delete
-            </button>
-          </div>
-        )}
-
-        {editing ? (
-          <>
-            <div style={section}>
-              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: '#05C16A' }}>Edit Rider Details</h2>
-
-              <label style={editLabelStyle}>Full Name</label>
-              <input style={editInputStyle} value={editForm.fullName} onChange={updateField('fullName')} />
-
-              <label style={editLabelStyle}>Phone</label>
-              <input style={editInputStyle} value={editForm.phone} onChange={updateField('phone')} />
-
-              <label style={editLabelStyle}>Email</label>
-              <input style={editInputStyle} value={editForm.email} onChange={updateField('email')} />
-
-              <label style={editLabelStyle}>Address</label>
-              <input style={editInputStyle} value={editForm.address} onChange={updateField('address')} />
-
-              <label style={editLabelStyle}>Ghana Card Number</label>
-              <input style={editInputStyle} value={editForm.ghanaIdNumber} onChange={updateField('ghanaIdNumber')} />
-
-              <label style={editLabelStyle}>License Number</label>
-              <input style={editInputStyle} value={editForm.licenseNumber} onChange={updateField('licenseNumber')} />
-            </div>
-
-            {editForm.guarantor && (
-              <div style={section}>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12, color: '#05C16A' }}>Edit Guarantor</h2>
-
-                <label style={editLabelStyle}>Full Name</label>
-                <input style={editInputStyle} value={editForm.guarantor.fullName} onChange={updateGuarantorField('fullName')} />
-
-                <label style={editLabelStyle}>Phone</label>
-                <input style={editInputStyle} value={editForm.guarantor.phone} onChange={updateGuarantorField('phone')} />
-
-                <label style={editLabelStyle}>Email</label>
-                <input style={editInputStyle} value={editForm.guarantor.email} onChange={updateGuarantorField('email')} />
-
-                <label style={editLabelStyle}>Address</label>
-                <input style={editInputStyle} value={editForm.guarantor.address} onChange={updateGuarantorField('address')} />
-
-                <label style={editLabelStyle}>Ghana Card Number</label>
-                <input style={editInputStyle} value={editForm.guarantor.ghanaIdNumber} onChange={updateGuarantorField('ghanaIdNumber')} />
-              </div>
-            )}
-
-            <div style={{ display: 'flex', gap: 12 }}>
-              <button
-                onClick={handleSave}
-                disabled={saving}
-                style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-              >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                onClick={() => setEditing(false)}
-                disabled={saving}
-                style={{ flex: 1, padding: 16, borderRadius: 12, border: '1px solid #2A4A38', background: 'transparent', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-              >
-                Cancel
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div style={section}>
-              <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Rider Details</h2>
-              {row('Phone', rider.phone)}
-              {row('Email', rider.email)}
-              {row('Address', rider.address)}
-              {row('Ghana Card Number', rider.ghana_id_number)}
-              {row('License Number', rider.license_number)}
-              {rider.latitude && (
-                <div style={{ padding: '10px 0' }}>
-                  <a href={mapsLink(rider.latitude, rider.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
-                    Open Location in Google Maps →
-                  </a>
-                </div>
+              {rider.archived && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', padding: '7px 15px', borderRadius: 999, fontSize: 12.5, fontWeight: 800, color: '#5D6C65', background: '#EEF2EF' }}>
+                  Archived
+                </span>
               )}
-              <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-                {rider.ghana_id_signed_url && (
-                  <img
-                    src={rider.ghana_id_signed_url}
-                    alt="Ghana Card"
-                    style={thumbStyle}
-                    onClick={() => setLightboxImage({ src: rider.ghana_id_signed_url, alt: 'Ghana Card' })}
-                  />
-                )}
-                {rider.license_signed_url && (
-                  <img
-                    src={rider.license_signed_url}
-                    alt="License"
-                    style={thumbStyle}
-                    onClick={() => setLightboxImage({ src: rider.license_signed_url, alt: 'Driving License' })}
-                  />
-                )}
-              </div>
             </div>
-
-            {guarantor && (
-              <div style={section}>
-                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: '#05C16A' }}>Guarantor</h2>
-                {row('Full Name', guarantor.full_name)}
-                {row('Phone', guarantor.phone)}
-                {row('Email', guarantor.email)}
-                {row('Address', guarantor.address)}
-                {row('Ghana Card Number', guarantor.ghana_id_number)}
-                {guarantor.latitude && (
-                  <div style={{ padding: '10px 0' }}>
-                    <a href={mapsLink(guarantor.latitude, guarantor.longitude)} target="_blank" style={{ color: '#05C16A', fontSize: 14 }}>
-                      Open Location in Google Maps →
-                    </a>
-                  </div>
-                )}
-                {guarantor.ghana_id_signed_url && (
-                  <img
-                    src={guarantor.ghana_id_signed_url}
-                    alt="Guarantor Ghana Card"
-                    style={{ ...thumbStyle, marginTop: 12 }}
-                    onClick={() => setLightboxImage({ src: guarantor.ghana_id_signed_url, alt: "Guarantor's Ghana Card" })}
-                  />
-                )}
-              </div>
-            )}
-
-            {rider.status === 'rejected' && rider.rejection_reason && (
-              <div style={{ ...section, borderLeft: '3px solid #F5A3A3' }}>
-                <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 6, color: '#F5A3A3' }}>Rejection Reason</h2>
-                <p style={{ fontSize: 14, color: '#DCEFE3' }}>{rider.rejection_reason}</p>
-              </div>
-            )}
-
-            {rider.status === 'pending' && (
-              <div style={{ display: 'flex', gap: 12 }}>
-                <button
-                  onClick={handleApprove}
-                  disabled={acting}
-                  style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#05C16A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => setShowRejectDialog(true)}
-                  disabled={acting}
-                  style={{ flex: 1, padding: 16, borderRadius: 12, border: 'none', background: '#F5A3A3', color: '#0E2A1D', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  Reject
-                </button>
-              </div>
-            )}
-          </>
-        )}
+            <p style={{ margin: '7px 0 0', fontSize: 13.5, fontWeight: 600, color: '#7C8A83' }}>
+              Rider ID: {formatRiderId(rider.rider_number)} &nbsp;•&nbsp; Registered on {new Date(rider.created_at || rider.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+            </p>
+          </div>
+          {!editing && (
+            <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+              <button onClick={rider.status === 'pending' ? handleApprove : undefined} disabled={rider.status !== 'pending' || acting} style={rider.status === 'pending' ? detailBtn : detailBtnOff}>
+                <Check size={15} /> Approve
+              </button>
+              <button onClick={rider.status === 'pending' ? () => setShowRejectDialog(true) : undefined} disabled={rider.status !== 'pending' || acting} style={rider.status === 'pending' ? detailBtn : detailBtnOff}>
+                <X size={15} /> Reject
+              </button>
+              <button onClick={rider.status === 'pending' ? startEditing : undefined} disabled={rider.status !== 'pending'} style={rider.status === 'pending' ? detailBtn : detailBtnOff}>
+                <Pencil size={15} /> Edit
+              </button>
+              <button onClick={handleArchiveToggle} disabled={acting} style={detailBtn}>
+                {rider.archived ? <ArchiveRestore size={15} /> : <Archive size={15} />} {rider.archived ? 'Unarchive' : 'Archive'}
+              </button>
+              <button onClick={handleDelete} disabled={acting} style={detailBtnDanger}>
+                <Trash2 size={15} /> Delete
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {showRejectDialog && (
-        <RejectDialog
-          onCancel={() => setShowRejectDialog(false)}
-          onConfirm={handleReject}
-          submitting={acting}
-        />
+      {editing ? (
+        <>
+          <div style={{ ...card, padding: 20 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12, color: ACCENT }}>Edit Rider Details</h2>
+            <label style={editLabelStyle}>Full Name</label>
+            <input style={editInputStyle} value={editForm.fullName} onChange={updateField('fullName')} />
+            <label style={editLabelStyle}>Phone</label>
+            <input style={editInputStyle} value={editForm.phone} onChange={updateField('phone')} />
+            <label style={editLabelStyle}>Email</label>
+            <input style={editInputStyle} value={editForm.email} onChange={updateField('email')} />
+            <label style={editLabelStyle}>Address</label>
+            <input style={editInputStyle} value={editForm.address} onChange={updateField('address')} />
+            <label style={editLabelStyle}>Ghana Card Number</label>
+            <input style={editInputStyle} value={editForm.ghanaIdNumber} onChange={updateField('ghanaIdNumber')} />
+            <label style={editLabelStyle}>License Number</label>
+            <input style={editInputStyle} value={editForm.licenseNumber} onChange={updateField('licenseNumber')} />
+          </div>
+
+          {editForm.guarantor && (
+            <div style={{ ...card, padding: 20 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 800, marginBottom: 12, color: ACCENT }}>Edit Guarantor</h2>
+              <label style={editLabelStyle}>Full Name</label>
+              <input style={editInputStyle} value={editForm.guarantor.fullName} onChange={updateGuarantorField('fullName')} />
+              <label style={editLabelStyle}>Phone</label>
+              <input style={editInputStyle} value={editForm.guarantor.phone} onChange={updateGuarantorField('phone')} />
+              <label style={editLabelStyle}>Email</label>
+              <input style={editInputStyle} value={editForm.guarantor.email} onChange={updateGuarantorField('email')} />
+              <label style={editLabelStyle}>Address</label>
+              <input style={editInputStyle} value={editForm.guarantor.address} onChange={updateGuarantorField('address')} />
+              <label style={editLabelStyle}>Ghana Card Number</label>
+              <input style={editInputStyle} value={editForm.guarantor.ghanaIdNumber} onChange={updateGuarantorField('ghanaIdNumber')} />
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: 12 }}>
+            <button onClick={handleSave} disabled={saving} style={{ flex: 1, height: 52, borderRadius: 14, border: 'none', background: `linear-gradient(100deg,#0BAE5E,${ACCENT})`, color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: FONT }}>
+              {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+            <button onClick={() => setEditing(false)} disabled={saving} style={{ flex: 1, height: 52, borderRadius: 14, border: '1px solid #DCE6E0', background: '#fff', color: '#3A4C43', fontWeight: 800, fontSize: 15, cursor: 'pointer', fontFamily: FONT }}>
+              Cancel
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.95fr)', gap: 16, alignItems: 'start' }}>
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 6px' }}>
+                <User size={21} color={ACCENT} />
+                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Personal Information</span>
+              </div>
+              <div style={{ padding: '2px 20px 14px' }}>
+                {personalRows.map((r) => (
+                  <div key={r.label} style={infoRow}>
+                    <r.icon size={16} color="#8A978F" />
+                    <span style={infoLabel}>{r.label}</span>
+                    <span style={infoValue}>{r.value || '—'}</span>
+                    {r.value && <Copy size={14} color="#A9B5AE" style={{ cursor: 'pointer' }} onClick={() => navigator.clipboard.writeText(r.value)} />}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
+                <FileText size={21} color={ACCENT} />
+                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Documents</span>
+              </div>
+              <div style={{ padding: '0 20px 18px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                <DocThumb label="Ghana Card" docLabel="Ghana Card" signedUrl={rider.ghana_id_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
+                <DocThumb label="Driving License" docLabel="Driver Licence" signedUrl={rider.license_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
+              </div>
+            </div>
+
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
+                <MapPin size={21} color={ACCENT} />
+                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Location</span>
+              </div>
+              <div style={{ padding: '0 20px 18px' }}>
+                {rider.latitude ? <MapBox lat={rider.latitude} lng={rider.longitude} /> : <span style={{ fontSize: 13, color: '#9AA8A0' }}>No location on file.</span>}
+              </div>
+            </div>
+          </div>
+
+          {guarantor && (
+            <div style={card}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '18px 20px 12px' }}>
+                <User size={21} color={ACCENT} />
+                <span style={{ fontSize: 16.5, fontWeight: 800, color: '#10281C' }}>Guarantor Information</span>
+              </div>
+              <div style={{ padding: '0 20px 20px', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,.85fr) minmax(0,.85fr)', gap: 16, alignItems: 'start' }}>
+                <div style={{ padding: '4px 16px 10px', borderRadius: 15, background: '#F3FAF6', border: '1px solid #DCEFE4' }}>
+                  {guarantorRows.map((r) => (
+                    <div key={r.label} style={infoRow}>
+                      <r.icon size={16} color="#8A978F" />
+                      <span style={infoLabel}>{r.label}</span>
+                      <span style={infoValue}>{r.value || '—'}</span>
+                      {r.value && <Copy size={14} color="#A9B5AE" style={{ cursor: 'pointer' }} onClick={() => navigator.clipboard.writeText(r.value)} />}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ padding: 14, borderRadius: 15, border: '1px solid #E7ECE8' }}>
+                  <DocThumb label="Ghana Card (Guarantor)" docLabel="Ghana Card" signedUrl={guarantor.ghana_id_signed_url} onView={(src, alt) => setLightboxImage({ src, alt })} />
+                </div>
+                <div style={{ padding: 14, borderRadius: 15, border: '1px solid #E7ECE8' }}>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: '#2D4038', display: 'block', marginBottom: 9 }}>Guarantor Location</span>
+                  {guarantor.latitude ? <MapBox lat={guarantor.latitude} lng={guarantor.longitude} /> : <span style={{ fontSize: 13, color: '#9AA8A0' }}>No location on file.</span>}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {rider.status === 'rejected' && rider.rejection_reason && (
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, padding: '18px 20px', borderRadius: 16, background: '#FDF2F3', border: '1px solid #F6D6D8', borderLeft: '5px solid #E5484D' }}>
+              <div style={{ flex: 'none', width: 34, height: 34, borderRadius: 11, background: '#FBDDDF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertCircle size={19} color="#E5484D" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 15.5, fontWeight: 800, color: '#C13239' }}>Rejection Reason</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#8A4145', marginTop: 6 }}>{rider.rejection_reason}</div>
+                {rider.reviewed_at && (
+                  <div style={{ fontSize: 12, fontWeight: 500, color: '#B08085', marginTop: 9 }}>
+                    Rejected on {new Date(rider.reviewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
 
-      {lightboxImage && (
-        <ImageLightbox
-          src={lightboxImage.src}
-          alt={lightboxImage.alt}
-          onClose={() => setLightboxImage(null)}
-        />
-      )}
-
+      {showRejectDialog && <RejectDialog onCancel={() => setShowRejectDialog(false)} onConfirm={handleReject} submitting={acting} />}
+      {lightboxImage && <ImageLightbox src={lightboxImage.src} alt={lightboxImage.alt} onClose={() => setLightboxImage(null)} />}
       {toastMessage && <SuccessToast message={toastMessage} />}
     </div>
   );

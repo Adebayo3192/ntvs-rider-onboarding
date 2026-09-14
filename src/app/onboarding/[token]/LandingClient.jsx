@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const ACCENT = '#05C16A';
+
 const RULES = [
   'Riders must report early for dispatch each working day, as scheduled by the shop.',
   'All cash collected must be settled and reported daily; no carrying over settlement to the next day without approval.',
@@ -23,7 +26,7 @@ export default function LandingClient({ token, rider }) {
 
   if (rider.locked) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: 24, textAlign: 'center' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(170deg, #0E2A1D 0%, #173D28 100%)', color: '#fff', padding: 24, textAlign: 'center', fontFamily: FONT }}>
         <div>
           <h1 style={{ fontSize: 22, marginBottom: 8 }}>This application has already been reviewed</h1>
           <p style={{ color: '#B7D4C4' }}>Contact the shop if you believe this is a mistake.</p>
@@ -36,51 +39,80 @@ export default function LandingClient({ token, rider }) {
     router.push(`/onboarding/${token}/register`);
   };
 
-  return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', color: '#fff', padding: '32px 20px' }}>
-      <div style={{ maxWidth: 480, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: '#05C16A', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 22 }}>
-            NTVS
-          </div>
-          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Join the NTVS Rider Network</h1>
-          <p style={{ color: '#B7D4C4', fontSize: 14 }}>Nouradine Top Cash Ventures — Fast and Reliable</p>
-        </div>
+  const agreeStyle = {
+    display: 'flex', alignItems: 'center', gap: 13, cursor: 'pointer',
+    padding: '13px 14px', minHeight: 56, boxSizing: 'border-box',
+    borderRadius: 16, userSelect: 'none',
+    background: agreed ? 'rgba(5,193,106,.12)' : 'rgba(255,255,255,.05)',
+    border: '1px solid ' + (agreed ? 'rgba(5,193,106,.45)' : 'rgba(255,255,255,.12)'),
+    transition: 'background .18s, border-color .18s',
+  };
 
-        <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 20, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 12 }}>Rules & Regulations</h2>
-          <ol style={{ paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 10, fontSize: 14, color: '#DCEFE3' }}>
+  const boxStyle = {
+    flex: 'none', width: 26, height: 26, borderRadius: 9,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: agreed ? ACCENT : 'transparent',
+    border: '2px solid ' + (agreed ? ACCENT : 'rgba(255,255,255,.45)'),
+    transition: 'background .18s, border-color .18s',
+  };
+
+  const btnStyle = {
+    marginTop: 12, width: '100%', height: 58, border: 'none', borderRadius: 18,
+    fontFamily: FONT, fontSize: 16.5, fontWeight: 700,
+    cursor: agreed ? 'pointer' : 'not-allowed',
+    background: agreed ? ACCENT : 'rgba(255,255,255,.09)',
+    color: agreed ? '#06281A' : 'rgba(255,255,255,.35)',
+    boxShadow: agreed ? '0 12px 28px rgba(5,193,106,.32)' : 'none',
+    transition: 'background .18s, color .18s, box-shadow .18s',
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(170deg, #0E2A1D 0%, #173D28 100%)', fontFamily: FONT, color: '#fff' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '48px 22px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <img
+          src="/logo.png"
+          alt="NTVS"
+          style={{ width: 112, height: 112, objectFit: 'contain', display: 'block', flex: 'none', filter: 'drop-shadow(0 10px 24px rgba(0,0,0,.45))' }}
+        />
+
+        <h1 style={{ margin: '22px 0 0', fontSize: 27, lineHeight: 1.2, fontWeight: 800, letterSpacing: '-.5px', textAlign: 'center' }}>
+          Join the NTVS Rider Network
+        </h1>
+        <p style={{ margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(255,255,255,.72)', textAlign: 'center', maxWidth: 280 }}>
+          Nouradine Top Cash Ventures — Fast and Reliable
+        </p>
+
+        <div style={{ marginTop: 26, width: '100%', flex: 'none', background: 'rgba(255,255,255,.055)', border: '1px solid rgba(255,255,255,.13)', borderRadius: 22, boxShadow: '0 18px 40px rgba(0,0,0,.3)', overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '18px 18px 14px', borderBottom: '1px solid rgba(255,255,255,.1)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: ACCENT, boxShadow: '0 0 0 4px rgba(5,193,106,.18)' }} />
+            <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '.2px' }}>Rules &amp; Regulations</span>
+            <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,.5)' }}>{RULES.length} rules</span>
+          </div>
+          <ol style={{ listStyle: 'none', margin: 0, padding: '6px 18px 18px', display: 'flex', flexDirection: 'column', gap: 2 }}>
             {RULES.map((rule, i) => (
-              <li key={i}>{rule}</li>
+              <li key={i} style={{ display: 'flex', gap: 13, alignItems: 'flex-start', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+                <span style={{ flex: 'none', width: 26, height: 26, borderRadius: 9, background: 'rgba(5,193,106,.16)', color: '#4FE39C', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 1 }}>
+                  {i + 1}
+                </span>
+                <span style={{ fontSize: 14, lineHeight: 1.62, fontWeight: 500, color: 'rgba(255,255,255,.9)' }}>{rule}</span>
+              </li>
             ))}
           </ol>
         </div>
+      </div>
 
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 20, fontSize: 14, color: '#DCEFE3' }}>
-          <input
-            type="checkbox"
-            checked={agreed}
-            onChange={(e) => setAgreed(e.target.checked)}
-            style={{ marginTop: 3, width: 18, height: 18 }}
-          />
-          I have read and agree to the Terms & Conditions above
-        </label>
-
-        <button
-          onClick={handleContinue}
-          disabled={!agreed}
-          style={{
-            width: '100%',
-            padding: '16px',
-            borderRadius: 14,
-            border: 'none',
-            fontSize: 16,
-            fontWeight: 700,
-            cursor: agreed ? 'pointer' : 'not-allowed',
-            background: agreed ? '#05C16A' : '#3A5347',
-            color: '#fff',
-          }}
-        >
+      <div style={{ flex: 'none', padding: '14px 22px 30px', background: 'linear-gradient(to top,#173D28 62%,rgba(23,61,40,0))', backdropFilter: 'blur(8px)' }}>
+        <div onClick={() => setAgreed((a) => !a)} role="checkbox" aria-checked={agreed} style={agreeStyle}>
+          <span style={boxStyle}>
+            <svg width="14" height="14" viewBox="0 0 14 14" style={{ opacity: agreed ? 1 : 0, transition: 'opacity .15s' }}>
+              <path d="M2.5 7.4l3 3 6-6.4" fill="none" stroke="#06281A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+          <span style={{ fontSize: 13.5, lineHeight: 1.45, fontWeight: 600, color: 'rgba(255,255,255,.92)' }}>
+            I have read and agree to the Terms &amp; Conditions above
+          </span>
+        </div>
+        <button onClick={handleContinue} disabled={!agreed} style={btnStyle}>
           Continue to Registration
         </button>
       </div>

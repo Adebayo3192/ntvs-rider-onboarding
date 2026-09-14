@@ -3,10 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+
+const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const ACCENT = '#0FA45C';
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -21,53 +26,283 @@ export default function AdminLoginPage() {
     setLoading(false);
 
     if (error) {
-      setError('Invalid email or password.');
+      setError('Invalid email or password. Please try again.');
     } else {
       router.push('/admin/dashboard');
     }
   };
 
+  const inputWrap = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    height: 56,
+    padding: '0 16px',
+    borderRadius: 14,
+    background: '#fff',
+    border: '1px solid #DFE7E2',
+    boxSizing: 'border-box',
+  };
+
+  const inputStyle = {
+    flex: 1,
+    minWidth: 0,
+    border: 'none',
+    background: 'transparent',
+    fontFamily: FONT,
+    fontSize: 15,
+    fontWeight: 500,
+    color: '#10281C',
+    outline: 'none',
+  };
+
+  const fieldLabel = {
+    display: 'block',
+    fontSize: 14,
+    fontWeight: 800,
+    color: '#2D4038',
+    marginBottom: 9,
+    fontFamily: FONT,
+  };
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #0E2A1D, #173D28)', padding: 20 }}>
-      <form
-        onSubmit={handleLogin}
-        style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 16, padding: 32, width: '100%', maxWidth: 360 }}
+    <div style={{ minHeight: '100vh', display: 'flex', fontFamily: FONT }}>
+      {/* Left branding panel */}
+      <div
+        style={{
+          flex: '0 0 40%',
+          minWidth: 380,
+          background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)',
+          color: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '64px 48px 0',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
       >
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#05C16A', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 18, color: '#fff' }}>
-            NTVS
-          </div>
-          <h1 style={{ color: '#fff', fontSize: 20, fontWeight: 800 }}>Admin Login</h1>
-        </div>
-
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#B7D4C4', marginBottom: 6, display: 'block' }}>Email</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: '100%', padding: 14, borderRadius: 12, border: '1px solid #2A4A38', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 16, marginBottom: 14, boxSizing: 'border-box' }}
+        <img
+          src="/logo.png"
+          alt="NTVS"
+          style={{ width: 180, height: 180, objectFit: 'contain', filter: 'drop-shadow(0 14px 32px rgba(0,0,0,.45))' }}
         />
 
-        <label style={{ fontSize: 13, fontWeight: 600, color: '#B7D4C4', marginBottom: 6, display: 'block' }}>Password</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: '100%', padding: 14, borderRadius: 12, border: '1px solid #2A4A38', background: 'rgba(255,255,255,0.06)', color: '#fff', fontSize: 16, marginBottom: 14, boxSizing: 'border-box' }}
+        <h1 style={{ margin: '26px 0 0', fontSize: 42, fontWeight: 800, letterSpacing: '-1.4px', textAlign: 'center' }}>
+          NTVS Delivery
+        </h1>
+        <span style={{ marginTop: 8, fontSize: 19, fontWeight: 600, color: 'rgba(255,255,255,.72)' }}>
+          Admin Portal
+        </span>
+        <span style={{ marginTop: 22, width: 84, height: 3, borderRadius: 2, background: '#05C16A' }} />
+        <p style={{ margin: '24px 0 0', fontSize: 19, lineHeight: 1.5, fontWeight: 600, color: 'rgba(255,255,255,.86)', textAlign: 'center', maxWidth: 300 }}>
+          Building a stronger delivery network together
+        </p>
+
+        <div style={{ flex: 1, minHeight: 20 }} />
+
+        <img
+          src="/sidebar-illustration.svg"
+          alt=""
+          style={{ width: 'calc(100% + 96px)', margin: '0 -48px 0', display: 'block' }}
         />
 
-        {error && <p style={{ color: '#F5A3A3', fontSize: 14, marginBottom: 14 }}>{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ width: '100%', padding: 16, borderRadius: 14, border: 'none', fontSize: 16, fontWeight: 700, cursor: 'pointer', background: '#05C16A', color: '#fff' }}
+        <div
+          style={{
+            width: 'calc(100% + 96px)',
+            margin: '0 -48px 0',
+            display: 'flex',
+            alignItems: 'center',
+            padding: '16px 30px',
+            background: '#0B2418',
+          }}
         >
-          {loading ? 'Signing In...' : 'Sign In'}
-        </button>
-      </form>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3z" stroke="#4FE39C" strokeWidth="1.9" strokeLinejoin="round" />
+              <path d="M9 12.2l2.2 2.2 4-4.4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span style={{ fontSize: 12.5, lineHeight: 1.3, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+              Safe<br />Deliveries
+            </span>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <circle cx="9" cy="8" r="3" stroke="#4FE39C" strokeWidth="1.9" />
+              <path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
+              <circle cx="17" cy="9" r="2.4" stroke="#4FE39C" strokeWidth="1.7" />
+              <path d="M15.5 20c0-2.6 1.8-4.5 4.5-4.5" stroke="#4FE39C" strokeWidth="1.7" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontSize: 12.5, lineHeight: 1.3, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+              Stronger<br />Communities
+            </span>
+          </div>
+          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M4 20V14M11 20V10M18 20V4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
+            </svg>
+            <span style={{ fontSize: 12.5, lineHeight: 1.3, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+              A Better<br />Tomorrow
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div
+        style={{
+          flex: 1,
+          background: '#F7FBF8',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 40,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            top: -120,
+            right: -100,
+            width: 420,
+            height: 420,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(15,164,92,.14) 0%, rgba(15,164,92,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: -160,
+            left: -120,
+            width: 480,
+            height: 480,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(15,164,92,.10) 0%, rgba(15,164,92,0) 70%)',
+            pointerEvents: 'none',
+          }}
+        />
+        <form
+          onSubmit={handleLogin}
+          style={{
+            width: '100%',
+            maxWidth: 460,
+            background: '#fff',
+            borderRadius: 18,
+            border: '1px solid #E7ECE8',
+            boxShadow: '0 24px 60px rgba(14,42,29,.1)',
+            padding: '40px 40px 32px',
+            boxSizing: 'border-box',
+          }}
+        >
+          <h2 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: '#10281C', textAlign: 'center' }}>
+            Welcome back
+          </h2>
+          <p style={{ margin: '8px 0 0', fontSize: 15, color: '#7C8A83', textAlign: 'center' }}>
+            Sign in to manage rider applications
+          </p>
+
+          {error && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                marginTop: 24,
+                padding: '14px 16px',
+                borderRadius: 12,
+                background: '#FDE4E6',
+                color: '#E5484D',
+                fontSize: 14,
+                fontWeight: 600,
+              }}
+            >
+              <AlertCircle size={18} style={{ flex: 'none' }} />
+              {error}
+            </div>
+          )}
+
+          <div style={{ marginTop: 24 }}>
+            <label style={fieldLabel}>Email address</label>
+            <div style={inputWrap}>
+              <Mail size={18} color="#8E9B94" style={{ flex: 'none' }} />
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="admin@ntvs.com"
+                required
+                style={inputStyle}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <label style={fieldLabel}>Password</label>
+            <div style={inputWrap}>
+              <Lock size={18} color="#8E9B94" style={{ flex: 'none' }} />
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter your password"
+                required
+                style={inputStyle}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flex: 'none' }}
+              >
+                {showPassword ? <EyeOff size={18} color="#8E9B94" /> : <Eye size={18} color="#8E9B94" />}
+              </button>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 14 }}>
+            <a href="#" style={{ fontSize: 13.5, fontWeight: 700, color: ACCENT, textDecoration: 'underline' }}>
+              Forgot password?
+            </a>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              marginTop: 22,
+              width: '100%',
+              height: 60,
+              border: 'none',
+              borderRadius: 15,
+              cursor: loading ? 'default' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
+              fontFamily: FONT,
+              fontSize: 17,
+              fontWeight: 800,
+              color: '#fff',
+              background: `linear-gradient(100deg, #0BAE5E, ${ACCENT})`,
+              boxShadow: '0 12px 26px rgba(5,193,106,.3)',
+            }}
+          >
+            <span>{loading ? 'Signing In...' : 'Sign In'}</span>
+            {!loading && <ArrowRight size={20} color="#fff" />}
+          </button>
+
+          <hr style={{ margin: '28px 0 20px', border: 'none', borderTop: '1px solid #E7ECE8' }} />
+
+          <p style={{ margin: 0, textAlign: 'center', fontSize: 13, color: '#9AA8A0' }}>
+            NTVS Delivery&nbsp;&nbsp;|&nbsp;&nbsp;Admin Portal
+            <br />
+            © 2026 Nouradine Top Cash Ventures. All rights reserved.
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

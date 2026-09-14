@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
-import { MapPin, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
+
+const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const ACCENT = '#05C16A';
 
 const MapContainer = dynamic(() => import('react-leaflet').then((m) => m.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then((m) => m.TileLayer), { ssr: false });
@@ -37,6 +40,13 @@ function FlyToHandler({ target }) {
   return null;
 }
 
+const locateBtn = {
+  width: '100%', height: 62, border: 'none', borderRadius: 18, cursor: 'pointer',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, flex: 'none',
+  fontFamily: FONT, fontSize: 16.5, fontWeight: 700, background: ACCENT, color: '#06281A',
+  boxShadow: '0 14px 30px rgba(5,193,106,.32)',
+};
+
 export default function LocationPicker({ lat, lng, onChange }) {
   const [ready, setReady] = useState(false);
   const [icon, setIcon] = useState(null);
@@ -51,17 +61,20 @@ export default function LocationPicker({ lat, lng, onChange }) {
   useEffect(() => {
     setReady(true);
     import('leaflet').then((L) => {
-      const customIcon = L.icon({
-        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-        iconSize: [25, 41],
-        iconAnchor: [12, 41],
+      const customIcon = L.divIcon({
+        html: `<svg width="38" height="48" viewBox="0 0 38 48" fill="none">
+          <path d="M19 47c0 0 15-16.5 15-28A15 15 0 004 19c0 11.5 15 28 15 28z" fill="${ACCENT}" stroke="#06281A" stroke-width="2"/>
+          <circle cx="19" cy="18.5" r="5.6" fill="#06281A"/>
+        </svg>`,
+        className: '',
+        iconSize: [38, 48],
+        iconAnchor: [19, 48],
       });
       setIcon(customIcon);
     });
   }, []);
 
-  const center = lat && lng ? [lat, lng] : [5.6037, -0.187]; // defaults to Accra
+  const center = lat && lng ? [lat, lng] : [5.6037, -0.187];
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) return;
@@ -84,16 +97,12 @@ export default function LocationPicker({ lat, lng, onChange }) {
   const handleSearchChange = (e) => {
     const value = e.target.value;
     setQuery(value);
-
     if (debounceRef.current) clearTimeout(debounceRef.current);
-
     if (value.trim().length < 3) {
       setResults([]);
       return;
     }
-
     const thisRequestId = ++requestIdRef.current;
-
     debounceRef.current = setTimeout(async () => {
       setSearching(true);
       try {
@@ -101,14 +110,9 @@ export default function LocationPicker({ lat, lng, onChange }) {
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(value)}&countrycodes=gh&limit=5`
         );
         const data = await res.json();
-
-        if (thisRequestId === requestIdRef.current) {
-          setResults(data);
-        }
+        if (thisRequestId === requestIdRef.current) setResults(data);
       } catch (err) {
-        if (thisRequestId === requestIdRef.current) {
-          setResults([]);
-        }
+        if (thisRequestId === requestIdRef.current) setResults([]);
       }
       setSearching(false);
     }, 500);
@@ -122,56 +126,38 @@ export default function LocationPicker({ lat, lng, onChange }) {
     setResults([]);
   };
 
-  if (!ready || !icon) return <div style={{ height: 260, background: '#1B3A28', borderRadius: 14 }} />;
+  if (!ready || !icon) return <div style={{ height: 270, background: '#1b3226', borderRadius: 20 }} />;
 
   return (
-    <div style={{ marginBottom: 20 }}>
-      <button
-        type="button"
-        onClick={useCurrentLocation}
-        disabled={locating}
-        style={{
-          width: '100%',
-          padding: '14px',
-          borderRadius: 12,
-          border: 'none',
-          background: '#05C16A',
-          color: '#fff',
-          fontWeight: 700,
-          fontSize: 15,
-          marginBottom: 12,
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-        }}
-      >
-        <MapPin size={18} /> {locating ? 'Finding you...' : 'Use My Current Location'}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <button type="button" onClick={useCurrentLocation} style={locateBtn}>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <path d="M12 21.5s7-6.1 7-11a7 7 0 10-14 0c0 4.9 7 11 7 11z" stroke="#06281A" strokeWidth="2" strokeLinejoin="round" />
+          <circle cx="12" cy="10.2" r="2.7" fill="#06281A" />
+        </svg>
+        <span>{locating ? 'Finding you...' : 'Use My Current Location'}</span>
       </button>
 
-      <div style={{ position: 'relative', marginBottom: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'rgba(255,255,255,0.06)', border: '1px solid #2A4A38', borderRadius: 12, padding: '10px 14px' }}>
-          <Search size={16} color="#7FB89E" />
+      <div style={{ position: 'relative' }}>
+        <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 10, padding: '0 14px', height: 50, borderRadius: 15, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.13)' }}>
+          <Search size={18} color="rgba(255,255,255,.45)" style={{ flex: 'none' }} />
           <input
             type="text"
             value={query}
             onChange={handleSearchChange}
             placeholder="Search a place or area to jump there..."
-            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 16 }}
+            style={{ flex: 1, minWidth: 0, border: 'none', background: 'transparent', fontFamily: FONT, fontSize: 16, fontWeight: 500, color: '#fff', outline: 'none' }}
           />
         </div>
 
         {(results.length > 0 || searching) && (
-          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#173D28', border: '1px solid #2A4A38', borderRadius: 12, marginTop: 4, zIndex: 1000, overflow: 'hidden' }}>
-            {searching && (
-              <div style={{ padding: 12, fontSize: 13, color: '#7FB89E' }}>Searching...</div>
-            )}
+          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#173D28', border: '1px solid rgba(255,255,255,.13)', borderRadius: 15, marginTop: 6, zIndex: 1000, overflow: 'hidden' }}>
+            {searching && <div style={{ padding: 12, fontSize: 13, color: 'rgba(255,255,255,.6)' }}>Searching...</div>}
             {results.map((r) => (
               <div
                 key={r.place_id}
                 onClick={() => handleSelectResult(r)}
-                style={{ padding: 12, fontSize: 13, color: '#DCEFE3', cursor: 'pointer', borderBottom: '1px solid #2A4A38' }}
+                style={{ padding: 12, fontSize: 13, color: 'rgba(255,255,255,.85)', cursor: 'pointer', borderBottom: '1px solid rgba(255,255,255,.08)' }}
               >
                 {r.display_name}
               </div>
@@ -180,12 +166,12 @@ export default function LocationPicker({ lat, lng, onChange }) {
         )}
       </div>
 
-      <div style={{ fontSize: 12, color: '#7FB89E', marginBottom: 10 }}>
+      <p style={{ margin: '-4px 0 0', fontSize: 11.5, lineHeight: 1.5, color: 'rgba(255,255,255,.5)' }}>
         Search moves the map to that area — tap or drag the pin below to mark the exact spot.
-      </div>
+      </p>
 
-      <div style={{ height: 260, borderRadius: 14, overflow: 'hidden' }}>
-        <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%' }}>
+      <div style={{ flex: 'none', position: 'relative', width: '100%', height: 270, borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(255,255,255,.15)', boxShadow: '0 16px 34px rgba(0,0,0,.35)', background: '#1b3226' }}>
+        <MapContainer center={center} zoom={14} style={{ height: '100%', width: '100%' }} zoomControl={false} attributionControl={false}>
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           {lat && lng && (
             <Marker
@@ -203,11 +189,17 @@ export default function LocationPicker({ lat, lng, onChange }) {
           <ClickHandler onPick={onChange} />
           <FlyToHandler target={flyTarget} />
         </MapContainer>
+        <div style={{ position: 'absolute', right: 10, bottom: 8, padding: '3px 7px', borderRadius: 6, background: 'rgba(6,40,26,.72)', font: "500 8.5px ui-monospace,Menlo,monospace", color: 'rgba(255,255,255,.7)', pointerEvents: 'none' }}>
+          © OpenStreetMap
+        </div>
       </div>
 
       {lat && lng && (
-        <div style={{ fontSize: 13, color: '#7FB89E', marginTop: 8, fontFamily: 'monospace' }}>
-          {lat.toFixed(5)}, {lng.toFixed(5)}
+        <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,.45)' }}>Pin set at</span>
+          <span style={{ font: "500 12px 'JetBrains Mono',ui-monospace,Menlo,monospace", color: 'rgba(255,255,255,.72)', letterSpacing: '.2px' }}>
+            {lat.toFixed(5)}, {lng.toFixed(5)}
+          </span>
         </div>
       )}
     </div>
