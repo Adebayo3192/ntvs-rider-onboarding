@@ -232,6 +232,40 @@ export default function DashboardHome() {
               <Link2 size={17} /> Generate Link
             </button>
           </div>
+
+          <div style={card}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '18px 20px 14px' }}>
+              <div style={hdrIconStyle}>
+                <BarChart3 size={19} color="#fff" />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Quick Stats</div>
+                <div style={{ fontSize: 13, fontWeight: 500, color: '#7C8A83', marginTop: 2 }}>Rider applications for the last 7 days</div>
+              </div>
+            </div>
+            <div style={{ padding: '8px 20px 20px' }}>
+              {(() => {
+                const max = Math.max(1, ...weekly.map((w) => w.v));
+                return (
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 150 }}>
+                    {weekly.map((w, i) => (
+                      <div key={i} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
+                        <div
+                          style={{
+                            width: '100%',
+                            height: Math.round((w.v / max) * 118) + 2,
+                            borderRadius: '6px 6px 3px 3px',
+                            background: `linear-gradient(180deg,#3ED68C,${ACCENT})`,
+                          }}
+                        />
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#8A978F' }}>{w.d}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          </div>
         </div>
 
         {/* Right column */}
@@ -285,40 +319,6 @@ export default function DashboardHome() {
                   ))}
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div style={card}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '18px 20px 14px' }}>
-              <div style={hdrIconStyle}>
-                <BarChart3 size={19} color="#fff" />
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 17, fontWeight: 800, color: '#10281C' }}>Quick Stats</div>
-                <div style={{ fontSize: 13, fontWeight: 500, color: '#7C8A83', marginTop: 2 }}>Rider applications for the last 7 days</div>
-              </div>
-            </div>
-            <div style={{ padding: '8px 20px 20px' }}>
-              {(() => {
-                const max = Math.max(1, ...weekly.map((w) => w.v));
-                return (
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: 10, height: 150 }}>
-                    {weekly.map((w, i) => (
-                      <div key={i} style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7 }}>
-                        <div
-                          style={{
-                            width: '100%',
-                            height: Math.round((w.v / max) * 118) + 2,
-                            borderRadius: '6px 6px 3px 3px',
-                            background: `linear-gradient(180deg,#3ED68C,${ACCENT})`,
-                          }}
-                        />
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: '#8A978F' }}>{w.d}</span>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })()}
             </div>
           </div>
         </div>
