@@ -36,8 +36,8 @@ export default function AdminLoginPage() {
     display: 'flex',
     alignItems: 'center',
     gap: 12,
-    height: 48,
-    padding: '0 14px',
+    height: 42,
+    padding: '0 13px',
     borderRadius: 14,
     background: '#fff',
     border: '1px solid #DFE7E2',
@@ -50,7 +50,7 @@ export default function AdminLoginPage() {
     border: 'none',
     background: 'transparent',
     fontFamily: FONT,
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: 500,
     color: '#10281C',
     outline: 'none',
@@ -58,10 +58,10 @@ export default function AdminLoginPage() {
 
   const fieldLabel = {
     display: 'block',
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: 800,
     color: '#2D4038',
-    marginBottom: 6,
+    marginBottom: 5,
     fontFamily: FONT,
   };
 
@@ -85,17 +85,17 @@ export default function AdminLoginPage() {
         <img
           src="/logo.png"
           alt="NTVS"
-          style={{ width: 118, height: 118, objectFit: 'contain', filter: 'drop-shadow(0 14px 32px rgba(0,0,0,.45))' }}
+          style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 14px 32px rgba(0,0,0,.45))' }}
         />
 
-        <h1 style={{ margin: '16px 0 0', fontSize: 30, fontWeight: 800, letterSpacing: '-1.4px', textAlign: 'center' }}>
+        <h1 style={{ margin: '12px 0 0', fontSize: 22, fontWeight: 800, letterSpacing: '-1.4px', textAlign: 'center' }}>
           NTVS Delivery
         </h1>
-        <span style={{ marginTop: 6, fontSize: 15, fontWeight: 600, color: 'rgba(255,255,255,.72)' }}>
+        <span style={{ marginTop: 5, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.72)' }}>
           Admin Portal
         </span>
-        <span style={{ marginTop: 14, width: 64, height: 3, borderRadius: 2, background: '#05C16A' }} />
-        <p style={{ margin: '14px 0 0', fontSize: 14.5, lineHeight: 1.4, fontWeight: 600, color: 'rgba(255,255,255,.86)', textAlign: 'center', maxWidth: 260 }}>
+        <span style={{ marginTop: 10, width: 50, height: 3, borderRadius: 2, background: '#05C16A' }} />
+        <p style={{ margin: '10px 0 0', fontSize: 12, lineHeight: 1.35, fontWeight: 600, color: 'rgba(255,255,255,.86)', textAlign: 'center', maxWidth: 240 }}>
           Building a stronger delivery network together
         </p>
 
@@ -118,30 +118,30 @@ export default function AdminLoginPage() {
           }}
         >
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3z" stroke="#4FE39C" strokeWidth="1.9" strokeLinejoin="round" />
               <path d="M9 12.2l2.2 2.2 4-4.4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span style={{ fontSize: 10.5, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
               Safe<br />Deliveries
             </span>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <circle cx="9" cy="8" r="3" stroke="#4FE39C" strokeWidth="1.9" />
               <path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
               <circle cx="17" cy="9" r="2.4" stroke="#4FE39C" strokeWidth="1.7" />
               <path d="M15.5 20c0-2.6 1.8-4.5 4.5-4.5" stroke="#4FE39C" strokeWidth="1.7" strokeLinecap="round" />
             </svg>
-            <span style={{ fontSize: 10.5, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
               Stronger<br />Communities
             </span>
           </div>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M4 20V14M11 20V10M18 20V4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
             </svg>
-            <span style={{ fontSize: 10.5, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
               A Better<br />Tomorrow
             </span>
           </div>
@@ -194,14 +194,14 @@ export default function AdminLoginPage() {
             borderRadius: 18,
             border: '1px solid #E7ECE8',
             boxShadow: '0 24px 60px rgba(14,42,29,.1)',
-            padding: '28px 30px 22px',
+            padding: '22px 24px 18px',
             boxSizing: 'border-box',
           }}
         >
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: '#10281C', textAlign: 'center' }}>
+          <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: '#10281C', textAlign: 'center' }}>
             Welcome back
           </h2>
-          <p style={{ margin: '6px 0 0', fontSize: 13, color: '#7C8A83', textAlign: 'center' }}>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: '#7C8A83', textAlign: 'center' }}>
             Sign in to manage rider applications
           </p>
 
@@ -211,8 +211,8 @@ export default function AdminLoginPage() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 10,
-                marginTop: 16,
-                padding: '11px 14px',
+                marginTop: 12,
+                padding: '9px 12px',
                 borderRadius: 12,
                 background: '#FDE4E6',
                 color: '#E5484D',
@@ -225,7 +225,7 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 12 }}>
             <label style={fieldLabel}>Email address</label>
             <div style={inputWrap}>
               <Mail size={18} color="#8E9B94" style={{ flex: 'none' }} />
@@ -240,7 +240,7 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 10 }}>
             <label style={fieldLabel}>Password</label>
             <div style={inputWrap}>
               <Lock size={18} color="#8E9B94" style={{ flex: 'none' }} />
@@ -262,8 +262,8 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
-            <a href="#" style={{ fontSize: 13.5, fontWeight: 700, color: ACCENT, textDecoration: 'underline' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+            <a href="#" style={{ fontSize: 11.5, fontWeight: 700, color: ACCENT, textDecoration: 'underline' }}>
               Forgot password?
             </a>
           </div>
@@ -272,9 +272,9 @@ export default function AdminLoginPage() {
             type="submit"
             disabled={loading}
             style={{
-              marginTop: 16,
+              marginTop: 12,
               width: '100%',
-              height: 50,
+              height: 44,
               border: 'none',
               borderRadius: 15,
               cursor: loading ? 'default' : 'pointer',
@@ -283,7 +283,7 @@ export default function AdminLoginPage() {
               justifyContent: 'center',
               gap: 12,
               fontFamily: FONT,
-              fontSize: 15,
+              fontSize: 13.5,
               fontWeight: 800,
               color: '#fff',
               background: `linear-gradient(100deg, #0BAE5E, ${ACCENT})`,
@@ -294,9 +294,9 @@ export default function AdminLoginPage() {
             {!loading && <ArrowRight size={20} color="#fff" />}
           </button>
 
-          <hr style={{ margin: '18px 0 14px', border: 'none', borderTop: '1px solid #E7ECE8' }} />
+          <hr style={{ margin: '14px 0 12px', border: 'none', borderTop: '1px solid #E7ECE8' }} />
 
-          <p style={{ margin: 0, textAlign: 'center', fontSize: 11.5, color: '#9AA8A0' }}>
+          <p style={{ margin: 0, textAlign: 'center', fontSize: 10.5, color: '#9AA8A0' }}>
             NTVS Delivery&nbsp;&nbsp;|&nbsp;&nbsp;Admin Portal
             <br />
             © 2026 Nouradine Top Cash Ventures. All rights reserved.
