@@ -19,6 +19,8 @@ const card = {
   overflow: 'hidden',
 };
 
+const headerCard = { ...card, overflow: 'visible' };
+
 const infoRow = { display: 'grid', gridTemplateColumns: '26px 150px 1fr 20px', gap: 12, alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #F1F4F2' };
 const infoLabel = { fontSize: 11.5, fontWeight: 600, color: '#7C8A83' };
 const infoValue = { fontSize: 12, fontWeight: 700, color: '#1B332A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
@@ -337,8 +339,8 @@ export default function RiderDetailPage() {
     : [];
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
-      <div style={card}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '14px 14px 56px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
+      <div style={headerCard}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', flexWrap: 'wrap' }}>
           <div style={{ flex: 'none', width: 50, height: 50, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 17, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {initials(rider.full_name)}
@@ -476,7 +478,7 @@ export default function RiderDetailPage() {
                 <User size={16} color={ACCENT} />
                 <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Guarantor Information</span>
               </div>
-              <div className="ntvl-grid-3col-detail" style={{ padding: '0 20px 20px', alignItems: 'start' }}>
+              <div className="ntvl-grid-3col-detail" style={{ padding: '0 20px 32px', alignItems: 'start' }}>
                 <div style={{ padding: '3px 12px 8px', borderRadius: 12, background: '#F3FAF6', border: '1px solid #DCEFE4' }}>
                   {guarantorRows.map((r) => (
                     <div key={r.label} style={infoRow}>
