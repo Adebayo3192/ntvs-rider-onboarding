@@ -101,7 +101,7 @@ export default function DashboardHome() {
   };
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 24px 20px', fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 16px 20px', fontFamily: FONT }}>
       {/* Welcome header */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 24, marginBottom: 16 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -133,7 +133,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 12, marginBottom: 14 }}>
+      <div className="ntvl-grid-4" style={{ marginBottom: 14 }}>
         {stats.map((s) => {
           const meta = STATS_META[s.key];
           const Icon = meta.icon;
@@ -158,7 +158,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.52fr) minmax(0,1fr)', gap: 12, alignItems: 'start' }}>
+      <div className="ntvl-grid-2col-wide" style={{ alignItems: 'start' }}>
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div style={card}>

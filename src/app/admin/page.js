@@ -66,9 +66,10 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', fontFamily: FONT, overflow: 'hidden' }}>
+    <div className="ntvl-login-shell" style={{ height: '100dvh', display: 'flex', fontFamily: FONT, overflow: 'hidden' }}>
       {/* Left branding panel */}
       <div
+        className="ntvl-login-brand"
         style={{
           flex: '0 0 40%',
           minWidth: 380,
@@ -152,6 +153,7 @@ export default function AdminLoginPage() {
 
       {/* Right form panel */}
       <div
+        className="ntvl-login-form"
         style={{
           flex: 1,
           height: '100%',
@@ -308,6 +310,13 @@ export default function AdminLoginPage() {
           </p>
         </form>
       </div>
+
+      <style>{`
+        @media (max-width: 767px) {
+          .ntvl-login-brand { display: none !important; }
+          .ntvl-login-form { flex: 1 1 100% !important; }
+        }
+      `}</style>
     </div>
   );
 }

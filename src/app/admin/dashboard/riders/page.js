@@ -107,7 +107,7 @@ export default function RidersPage() {
   });
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 24px 20px', fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 16px 20px', fontFamily: FONT }}>
       {/* Page header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
         <div style={{ flex: 'none', width: 40, height: 40, borderRadius: 13, background: '#DCF4E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -145,7 +145,7 @@ export default function RidersPage() {
       </div>
 
       {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 12, marginBottom: 14 }}>
+      <div className="ntvl-grid-4" style={{ marginBottom: 14 }}>
         {stats.map((s) => {
           const meta = STATS_META[s.key];
           const Icon = meta.icon;
@@ -211,7 +211,8 @@ export default function RidersPage() {
 
       {/* Table */}
       <div style={card}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '10px 16px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
+      <div className="ntvl-table-scroll">
+        <div className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '10px 16px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Name</span>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Phone</span>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Status</span>
@@ -232,7 +233,7 @@ export default function RidersPage() {
           const av = tintFor(r.id);
           const date = r.submitted_at ? new Date(r.submitted_at) : null;
           return (
-            <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '9px 16px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
+            <div key={r.id} className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '9px 16px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
                 <div style={{ flex: 'none', width: 32, height: 32, borderRadius: '50%', background: av.tint, color: av.ink, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {initials(r.full_name)}
@@ -279,6 +280,7 @@ export default function RidersPage() {
             </div>
           );
         })}
+      </div>
       </div>
 
       {showAddModal && <AddRiderModal onClose={() => setShowAddModal(false)} />}

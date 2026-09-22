@@ -144,6 +144,7 @@ function SuccessToast({ message }) {
 }
 
 function MapBox({ lat, lng }) {
+  const [activated, setActivated] = useState(false);
   const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -151,8 +152,29 @@ function MapBox({ lat, lng }) {
         <iframe
           title="location"
           src={`https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`}
-          style={{ width: '100%', height: '100%', border: 0 }}
+          style={{ width: '100%', height: '100%', border: 0, pointerEvents: activated ? 'auto' : 'none' }}
+          tabIndex={-1}
         />
+        {!activated && (
+          <div
+            onClick={() => setActivated(true)}
+            onTouchStart={() => setActivated(true)}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'rgba(0,0,0,0.02)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              paddingBottom: 6,
+              cursor: 'pointer',
+            }}
+          >
+            <span style={{ fontSize: 10, fontWeight: 700, color: '#fff', background: 'rgba(16,40,28,.72)', padding: '3px 9px', borderRadius: 999 }}>
+              Tap to interact with map
+            </span>
+          </div>
+        )}
       </div>
       <a
         href={mapsLink}
@@ -315,15 +337,15 @@ export default function RiderDetailPage() {
     : [];
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '16px 20px 18px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
+    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '14px 14px 18px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
       <div style={card}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', flexWrap: 'wrap' }}>
           <div style={{ flex: 'none', width: 50, height: 50, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 17, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             {initials(rider.full_name)}
           </div>
-          <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C' }}>{rider.full_name || 'Rider'}</h1>
+              <h1 style={{ margin: 0, fontSize: 19, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C', wordBreak: 'break-word' }}>{rider.full_name || 'Rider'}</h1>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, padding: '5px 12px', borderRadius: 999, fontSize: 11, fontWeight: 800, color: statusPill.c, background: statusPill.bg, border: `1px solid ${statusPill.b}` }}>
                 {rider.status.charAt(0).toUpperCase() + rider.status.slice(1)}
               </span>
@@ -333,9 +355,13 @@ export default function RiderDetailPage() {
                 </span>
               )}
             </div>
-            <p style={{ margin: '5px 0 0', fontSize: 11.5, fontWeight: 600, color: '#7C8A83' }}>
-              Rider ID: {formatRiderId(rider.rider_number)} &nbsp;•&nbsp; Registered on {new Date(rider.created_at || rider.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 5 }}>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: '#7C8A83' }}>Rider ID: {formatRiderId(rider.rider_number)}</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: '#B9C4BE' }}>•</span>
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: '#7C8A83' }}>
+                Registered on {new Date(rider.created_at || rider.submitted_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
           </div>
           {!editing && (
             <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
@@ -404,7 +430,7 @@ export default function RiderDetailPage() {
         </>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.95fr)', gap: 12, alignItems: 'start' }}>
+          <div className="ntvl-grid-3col-detail" style={{ alignItems: 'start' }}>
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '13px 15px 4px' }}>
                 <User size={16} color={ACCENT} />
@@ -450,7 +476,7 @@ export default function RiderDetailPage() {
                 <User size={16} color={ACCENT} />
                 <span style={{ fontSize: 13.5, fontWeight: 800, color: '#10281C' }}>Guarantor Information</span>
               </div>
-              <div style={{ padding: '0 20px 20px', display: 'grid', gridTemplateColumns: 'minmax(0,1.3fr) minmax(0,.85fr) minmax(0,.85fr)', gap: 12, alignItems: 'start' }}>
+              <div className="ntvl-grid-3col-detail" style={{ padding: '0 20px 20px', alignItems: 'start' }}>
                 <div style={{ padding: '3px 12px 8px', borderRadius: 12, background: '#F3FAF6', border: '1px solid #DCEFE4' }}>
                   {guarantorRows.map((r) => (
                     <div key={r.label} style={infoRow}>
