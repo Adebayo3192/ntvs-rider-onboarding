@@ -339,7 +339,7 @@ export default function RiderDetailPage() {
     : [];
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', padding: '14px 14px 56px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
+    <div style={{ padding: '14px 14px 56px', display: 'flex', flexDirection: 'column', gap: 12, fontFamily: FONT }}>
       <div style={headerCard}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '14px 16px', flexWrap: 'wrap' }}>
           <div style={{ flex: 'none', width: 50, height: 50, borderRadius: '50%', background: av.bg, color: av.ink, fontSize: 17, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

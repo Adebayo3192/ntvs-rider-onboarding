@@ -10,7 +10,9 @@ export async function GET() {
 
   const totalEnabled = (allRiders || []).filter((r) => r.jumia_enabled).length;
   const totalReports = (allReports || []).length;
-  const totalPackages = (allReports || []).reduce((sum, r) => sum + r.small_count + r.medium_count, 0);
+  const totalSmall = (allReports || []).reduce((sum, r) => sum + r.small_count, 0);
+  const totalMedium = (allReports || []).reduce((sum, r) => sum + r.medium_count, 0);
+  const totalPackages = totalSmall + totalMedium;
   const totalAmount = (allReports || []).reduce((sum, r) => sum + Number(r.total_amount), 0);
   const unsettledReports = (allReports || []).filter((r) => !r.settled);
   const pendingAmount = unsettledReports.reduce((sum, r) => sum + Number(r.total_amount), 0);
@@ -56,15 +58,39 @@ export async function GET() {
     by: s.settled_by,
   }));
 
+  // Last 14 days, daily aggregation — powers the trend/amount charts
+  const dayKeys = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    dayKeys.push(d.toISOString().slice(0, 10));
+  }
+  const dailyMap = {};
+  dayKeys.forEach((d) => {
+    dailyMap[d] = { date: d, reports: 0, amount: 0, small: 0, medium: 0 };
+  });
+  (allReports || []).forEach((r) => {
+    if (dailyMap[r.report_date]) {
+      dailyMap[r.report_date].reports += 1;
+      dailyMap[r.report_date].amount += Number(r.total_amount);
+      dailyMap[r.report_date].small += r.small_count;
+      dailyMap[r.report_date].medium += r.medium_count;
+    }
+  });
+  const daily = dayKeys.map((d) => dailyMap[d]);
+
   return NextResponse.json({
     kpis: {
       totalEnabled,
       totalReports,
       totalPackages,
+      totalSmall,
+      totalMedium,
       totalAmount,
       pendingCount: unsettledReports.length,
       pendingAmount,
     },
+    daily,
     topRiders,
     oldestUnsettled,
     recentSettlements: recent,

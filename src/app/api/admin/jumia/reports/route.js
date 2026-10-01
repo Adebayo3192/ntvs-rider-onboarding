@@ -1,14 +1,21 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getCaller, unauthorized } from '@/lib/apiAuth';
 
 export async function GET(request) {
+  // Any logged-in admin OR jumia_reviewer account can view the reports
+  // list — a reviewer needs this to do their approval job. We just need
+  // to know SOMEONE with a valid session is asking, not which role.
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+
   const { searchParams } = new URL(request.url);
   const search = searchParams.get('search') || '';
   const period = searchParams.get('period') || 'all'; // 'all' | 'week'
 
   let query = supabaseAdmin
     .from('jumia_reports')
-    .select('id, report_date, small_count, medium_count, total_amount, settled, screenshot_url, riders(full_name)')
+    .select('id, report_date, small_count, medium_count, total_amount, settled, approval_status, screenshot_url, riders(full_name)')
     .order('report_date', { ascending: false });
 
   if (period === 'week') {
@@ -31,6 +38,7 @@ export async function GET(request) {
     medium: r.medium_count,
     amount: r.total_amount,
     status: r.settled ? 'Settled' : 'Unsettled',
+    approvalStatus: r.approval_status || 'pending',
   }));
 
   if (search) {

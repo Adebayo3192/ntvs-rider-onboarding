@@ -1,7 +1,9 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabaseClient';
 
 const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
 const ACCENT = '#0FA45C';
@@ -16,12 +18,37 @@ const TABS = [
   { label: 'Pricing', href: '/admin/dashboard/jumia/pricing' },
 ];
 
+const REPORTS_HREF = '/admin/dashboard/jumia/reports';
+
 export default function JumiaLayout({ children }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [role, setRole] = useState(null); // null = still checking
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setRole(session?.user?.user_metadata?.role || 'admin');
+    });
+  }, []);
+
+  const isReviewer = role === 'jumia_reviewer';
+
+  // A jumia_reviewer account only ever sees the Reports tab. If they land on
+  // any other Jumia tab (e.g. by typing the URL directly, or from the old
+  // /jumia -> /jumia/overview redirect), bounce them straight to Reports.
+  // This is a client-side convenience, not a security boundary — the actual
+  // API routes don't yet check role, so this only controls what the UI shows.
+  useEffect(() => {
+    if (isReviewer && pathname !== REPORTS_HREF) {
+      router.replace(REPORTS_HREF);
+    }
+  }, [isReviewer, pathname, router]);
+
+  const visibleTabs = isReviewer ? TABS.filter((t) => t.href === REPORTS_HREF) : TABS;
 
   return (
-    <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column', padding: '16px 14px 0', fontFamily: FONT }}>
-      <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div style={{ padding: '16px 14px 0', fontFamily: FONT }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <div style={{ flex: 'none', width: 40, height: 40, borderRadius: 13, background: '#DCF4E6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
             <path d="M12 3l8.5 4.3v9.4L12 21l-8.5-4.3V7.3L12 3z" stroke={ACCENT} strokeWidth="1.9" strokeLinejoin="round" />
@@ -30,12 +57,14 @@ export default function JumiaLayout({ children }) {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h1 style={{ margin: 0, fontSize: 21, fontWeight: 800, letterSpacing: '-.5px', color: '#10281C' }}>Jumia Delivery Reports</h1>
-          <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: '#6E7D76' }}>Manage daily delivery submissions, settlements, and pricing for Jumia riders.</p>
+          <p style={{ margin: '4px 0 0', fontSize: 12, fontWeight: 500, color: '#6E7D76' }}>
+            {isReviewer ? 'Review and approve daily delivery submissions from riders.' : 'Manage daily delivery submissions, settlements, and pricing for Jumia riders.'}
+          </p>
         </div>
       </div>
 
-      <div style={{ flex: 'none', display: 'flex', alignItems: 'center', gap: 4, marginTop: 14, borderBottom: '1px solid #E3EAE5', overflowX: 'auto', whiteSpace: 'nowrap' }}>
-        {TABS.map((tab) => {
+      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 14, borderBottom: '1px solid #E3EAE5', overflowX: 'auto', whiteSpace: 'nowrap' }}>
+        {visibleTabs.map((tab) => {
           const active = pathname === tab.href;
           return (
             <Link
@@ -58,7 +87,7 @@ export default function JumiaLayout({ children }) {
         })}
       </div>
 
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '18px 0 20px' }}>
+      <div style={{ padding: '18px 0 20px' }}>
         {children}
       </div>
     </div>

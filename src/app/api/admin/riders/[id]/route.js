@@ -29,11 +29,32 @@ export async function GET(request, { params }) {
     return NextResponse.json({ error: 'Rider not found' }, { status: 404 });
   }
 
-  const { data: guarantor } = await supabaseAdmin
+  // Fetch guarantor rows without .single() so we can see exactly what's
+  // there: zero rows, one row, or (the known failure mode) duplicates.
+  // .single() throws away rows on anything other than exactly one match
+  // and we were discarding its error, so a duplicate-row rider would
+  // silently show guarantor: null with no trace of why.
+  const { data: guarantorRows, error: guarantorError } = await supabaseAdmin
     .from('guarantors')
     .select('*')
-    .eq('rider_id', id)
-    .single();
+    .eq('rider_id', id);
+
+  if (guarantorError) {
+    console.error(`Guarantor lookup failed for rider ${id}:`, guarantorError);
+  }
+  if (guarantorRows && guarantorRows.length > 1) {
+    console.error(
+      `Rider ${id} has ${guarantorRows.length} guarantor rows (expected 1). Using the most recent one. Row ids: ${guarantorRows.map((g) => g.id).join(', ')}`
+    );
+  }
+
+  // Most recently created guarantor row wins if there happen to be duplicates.
+  const guarantor =
+    guarantorRows && guarantorRows.length > 0
+      ? [...guarantorRows].sort(
+          (a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0)
+        )[0]
+      : null;
 
   const ghanaIdSignedUrl = await signUrl(rider.ghana_id_image_url);
   const licenseSignedUrl = await signUrl(rider.license_image_url);

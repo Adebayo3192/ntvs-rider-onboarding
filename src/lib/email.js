@@ -2,7 +2,7 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const FROM_ADDRESS = 'NTVS Delivery <onboarding@nouradinetopcash.com>';
+const FROM_ADDRESS = 'NTVL Delivery <onboarding@nouradinetopcash.com>';
 const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://nouradinetopcash.com';
 const LOGO_URL = `${SITE_URL}/logo.png`;
@@ -16,8 +16,8 @@ function emailShell(bodyHtml) {
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 6px 20px rgba(14,42,29,.08);">
             <tr>
               <td style="background:linear-gradient(135deg,#0E2A1D,#173D28);padding:28px 24px;text-align:center;">
-                <img src="${LOGO_URL}" alt="NTVS" width="64" height="64" style="display:block;margin:0 auto 10px;" />
-                <span style="color:#ffffff;font-size:17px;font-weight:800;letter-spacing:-.3px;">NTVS Delivery</span>
+                <img src="${LOGO_URL}" alt="NTVL" width="64" height="64" style="display:block;margin:0 auto 10px;" />
+                <span style="color:#ffffff;font-size:17px;font-weight:800;letter-spacing:-.3px;">NTVL Delivery</span>
                 <br/>
                 <span style="color:rgba(255,255,255,.65);font-size:12px;font-weight:600;">Fast and Reliable</span>
               </td>
@@ -29,7 +29,7 @@ function emailShell(bodyHtml) {
             </tr>
             <tr>
               <td style="padding:18px 26px;background:#F7FBF8;border-top:1px solid #E7ECE8;text-align:center;">
-                <span style="font-size:11.5px;color:#9AA8A0;">© 2026 Nouradine Top Cash Ventures. All rights reserved.</span>
+                <span style="font-size:11.5px;color:#9AA8A0;">© 2026 Nouradine Top Cash Logistics. All rights reserved.</span>
               </td>
             </tr>
           </table>
@@ -86,23 +86,23 @@ export async function notifyRiderOfDecision(riderEmail, riderName, status, rejec
   const isApproved = status === 'approved';
 
   const subject = isApproved
-    ? 'Your NTVS rider application has been approved'
-    : 'Update on your NTVS rider application';
+    ? 'Your NTVL rider application has been approved'
+    : 'Update on your NTVL rider application';
 
   const body = isApproved
     ? `
       <div style="text-align:center;margin-bottom:10px;">${statusBadge('approved')}</div>
       <h2 style="margin:14px 0 6px;text-align:center;font-size:19px;font-weight:800;color:#10281C;">You're approved, ${riderName}! 🎉</h2>
       <p style="margin:0 0 4px;text-align:center;font-size:14.5px;line-height:1.6;color:#4E5D56;">
-        Good news — your application to become an NTVS rider has been approved. You'll be contacted with next steps soon.
+        Good news — your application to become an NTVL rider has been approved. You'll be contacted with next steps soon.
       </p>
-      <p style="margin:18px 0 0;text-align:center;font-size:13.5px;color:#9AA8A0;">Thank you for applying to NTVS Delivery.</p>
+      <p style="margin:18px 0 0;text-align:center;font-size:13.5px;color:#9AA8A0;">Thank you for applying to NTVL Delivery.</p>
     `
     : `
       <div style="text-align:center;margin-bottom:10px;">${statusBadge('rejected')}</div>
       <h2 style="margin:14px 0 6px;text-align:center;font-size:19px;font-weight:800;color:#10281C;">Application Update</h2>
       <p style="margin:0 0 16px;text-align:center;font-size:14.5px;line-height:1.6;color:#4E5D56;">
-        Hi ${riderName}, thank you for applying to become an NTVS rider. After review, we're unable to approve your application at this time.
+        Hi ${riderName}, thank you for applying to become an NTVL rider. After review, we're unable to approve your application at this time.
       </p>
       ${rejectionReason ? `
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FDF2F3;border-radius:14px;border-left:4px solid #E5484D;margin-bottom:16px;">

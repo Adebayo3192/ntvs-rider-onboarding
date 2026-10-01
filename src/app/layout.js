@@ -9,8 +9,14 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: "NTVS Delivery — Rider Onboarding",
-  description: "Nouradine Top Cash Ventures — rider onboarding and admin portal.",
+  title: "NTVL Delivery — Rider Onboarding",
+  description: "Nouradine Top Cash Logistics — rider onboarding and admin portal.",
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({ children }) {

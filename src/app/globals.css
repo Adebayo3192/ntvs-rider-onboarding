@@ -86,10 +86,38 @@ body {
 }
 .ntvl-tabs-scroll::-webkit-scrollbar { height: 4px; }
 
-/* Sidebar drawer (mobile) */
+/* Sidebar — now a genuinely FIXED panel on every screen size, not a
+   sticky one. position:fixed takes it completely out of the page's
+   normal flow: it is pinned to the viewport itself and literally cannot
+   move or scroll, no matter what any ancestor's height/overflow does.
+   That's what makes this simpler and more robust than the sticky
+   approach we had before — sticky still depends on the right ancestor
+   being (or not being) a scroll container, which is exactly what kept
+   going wrong. The main column gets a matching margin-left (see
+   .ntvl-main-column below) on desktop so its content starts to the
+   right of this fixed panel instead of sliding underneath it. */
 .ntvl-sidebar-desktop {
   display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100dvh;
+  overflow-y: auto; /* only this panel scrolls internally if its own content is taller than the screen — the page outside it is untouched */
+  z-index: 500;
 }
+
+@media (min-width: 768px) {
+  .ntvl-sidebar-desktop {
+    width: 240px;
+  }
+  /* Reserve the sidebar's width in the main column's layout, since the
+     fixed sidebar no longer takes up space in normal flow on its own. */
+  .ntvl-main-column {
+    margin-left: 240px;
+  }
+}
+
 .ntvl-drawer-overlay {
   display: none;
 }
@@ -102,15 +130,11 @@ body {
 
 @media (max-width: 767px) {
   .ntvl-sidebar-desktop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100dvh;
+    /* Off-canvas drawer: hidden to the left until opened. */
     z-index: 1000;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
     width: 280px !important;
-    flex: none !important;
   }
   .ntvl-sidebar-desktop.ntvl-drawer-open {
     transform: translateX(0);
@@ -128,12 +152,33 @@ body {
   .ntvl-desktop-topbar-label {
     display: none;
   }
+  /* No margin-left on mobile: the sidebar is an overlay drawer here, not
+     a permanent panel, so the main column uses the full screen width. */
+  .ntvl-main-column {
+    margin-left: 0;
+  }
 }
 
-/* Prevent the whole app shell from ever scrolling sideways */
+/* The app shell no longer locks itself into a fixed 100dvh box with an
+   internal scroll region per page. That pattern relied on every page's
+   content area precisely computing "100dvh minus header minus footer",
+   which 100dvh does not do reliably across browsers at every zoom level
+   — when it came out wrong, content silently clipped instead of
+   scrolling (seen as the Guarantor Information section getting cut off
+   at 100% zoom but fine at 75%). Now the page scrolls naturally like an
+   ordinary document; the header stays in view via position:sticky and
+   the sidebar via position:fixed. Only overflow-x stays clamped, to
+   stop any element from ever forcing a horizontal scrollbar on the
+   whole page. overflow-y is set explicitly to 'visible' (not left
+   unset) because browsers don't allow overflow-x and overflow-y to
+   disagree on visible vs. not-visible — leaving overflow-y unset here
+   would silently force its computed value to 'auto' too, turning this
+   whole shell into a hidden scroll container that the real page scroll
+   would happen inside of instead of on the window itself. */
 .ntvl-shell {
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 /* Prevent iOS/Android auto-zoom on input focus.

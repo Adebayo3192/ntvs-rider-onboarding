@@ -4,23 +4,35 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
-import { LayoutDashboard, Users, Bell, ChevronDown, LogOut, Package, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Bell, ChevronDown, LogOut, Package, Menu, X, Phone, Mail, MapPin } from 'lucide-react';
 
 const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
 const ACCENT = '#0FA45C';
+
+const CONTACT = {
+  phones: ['+233 557 914 062', '+233 533 347 777'],
+  email: 'noradinetopcash@gmail.com',
+  address: 'Alajo Dk Poison Street, GA-095-9234',
+};
 
 export default function DashboardLayout({ children }) {
   const [checking, setChecking] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  // 'admin' (default) or 'jumia_reviewer' — read from the Supabase Auth
+  // user's own metadata, no separate roles table needed. A jumia_reviewer
+  // account only ever sees the Jumia Delivery Reports nav item.
+  const [role, setRole] = useState('admin');
   const router = useRouter();
   const pathname = usePathname();
+  const isReviewer = role === 'jumia_reviewer';
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push('/admin');
       } else {
+        setRole(session.user?.user_metadata?.role || 'admin');
         setChecking(false);
       }
     });
@@ -30,6 +42,17 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     setDrawerOpen(false);
   }, [pathname]);
+
+  // A jumia_reviewer landing on the main dashboard home (or the riders
+  // section) gets sent straight to the Jumia Reports queue instead — those
+  // nav links are hidden for them, but the routes themselves would still
+  // render if visited directly.
+  useEffect(() => {
+    if (!isReviewer) return;
+    if (pathname === '/admin/dashboard' || pathname.startsWith('/admin/dashboard/riders')) {
+      router.replace('/admin/dashboard/jumia');
+    }
+  }, [isReviewer, pathname, router]);
 
   // Close the admin dropdown when tapping anywhere else on the screen
   const menuRef = useRef(null);
@@ -107,8 +130,8 @@ export default function DashboardLayout({ children }) {
       </div>
 
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 12px' }}>
-        {navItem('/admin/dashboard', 'Dashboard', LayoutDashboard)}
-        {navItem('/admin/dashboard/riders', 'Riders', Users)}
+        {!isReviewer && navItem('/admin/dashboard', 'Dashboard', LayoutDashboard)}
+        {!isReviewer && navItem('/admin/dashboard/riders', 'Riders', Users)}
         {navItem('/admin/dashboard/jumia', 'Jumia Delivery Reports', Package)}
       </nav>
 
@@ -147,33 +170,44 @@ export default function DashboardLayout({ children }) {
   );
 
   return (
-    <div className="ntvl-shell" style={{ height: '100dvh', display: 'flex', fontFamily: FONT }}>
+    <div className="ntvl-shell" style={{ minHeight: '100dvh', display: 'flex', fontFamily: FONT }}>
       {/* Mobile drawer overlay */}
       <div
         className={`ntvl-drawer-overlay ${drawerOpen ? 'ntvl-drawer-open' : ''}`}
         onClick={() => setDrawerOpen(false)}
       />
 
-      {/* Sidebar — permanent on desktop, slide-out drawer on mobile */}
+      {/* Sidebar — pinned to the screen with position:fixed (via the CSS
+          class, not inline, so the mobile media query can still override
+          it for the slide-out drawer). Being truly "fixed" rather than
+          "sticky" means it's taken out of the page's normal flow entirely
+          — it never moves, never scrolls with the page, and never depends
+          on any ancestor's height or overflow settings (which is what
+          made the old sticky approach fragile). The main column below
+          gets a matching margin-left on desktop so its content doesn't
+          render underneath the fixed sidebar. */}
       <div
         className={`ntvl-sidebar-desktop ${drawerOpen ? 'ntvl-drawer-open' : ''}`}
         style={{
-          flex: '0 0 240px',
-          height: '100%',
           background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)',
           color: '#fff',
-          flexDirection: 'column',
-          overflow: 'hidden',
         }}
       >
         {sidebarInner}
       </div>
 
-      {/* Main column */}
-      <div style={{ flex: 1, minWidth: 0, height: '100%', display: 'flex', flexDirection: 'column', background: '#F7FBF8', overflow: 'hidden' }}>
+      {/* Main column — the ntvl-main-column class adds margin-left on
+          desktop to clear the fixed sidebar (0 on mobile, where the
+          sidebar is an off-canvas drawer instead). No fixed height, no
+          overflow trap: the page itself scrolls naturally; only the
+          header is pinned (via sticky). */}
+      <div className="ntvl-main-column" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#F7FBF8' }}>
         {/* Desktop topbar */}
         <header
           style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 40,
             flex: 'none',
             height: 64,
             display: 'flex',
@@ -267,13 +301,96 @@ export default function DashboardLayout({ children }) {
           </div>
         </header>
 
-        {children}
+        {/* flex:1 (no minHeight:0) makes this grow to fill any leftover
+            space when a page's content is short — pushing the footer down
+            to the bottom of the screen, same as before — while still
+            letting it grow taller than the screen and scroll normally when
+            a page's content is long (nothing here clips it, unlike the old
+            fixed-100dvh-with-overflow-hidden approach). This single wrapper
+            is what gives every page both behaviors at once. */}
+        <div style={{ flex: 1 }}>
+          {children}
+        </div>
+
+        {/* Footer — contact info, shown at the end of every dashboard page.
+            Sits right after the content above: pinned to the bottom of the
+            screen on a short page (via that flex:1 wrapper), and simply
+            following the content on a long, scrolling page. */}
+        <footer
+          style={{
+            padding: '9px 16px',
+            background: '#fff',
+            borderTop: '1px solid #E7ECE8',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+          }}
+        >
+          {/* Desktop: all four items on one row. Hidden below 768px via CSS class. */}
+          <div
+            className="ntvl-footer-full"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              rowGap: 4,
+              columnGap: 18,
+              width: '100%',
+            }}
+          >
+            <a href={`tel:${CONTACT.phones[0].replace(/\s/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Phone size={11} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.phones[0]}
+            </a>
+            <a href={`tel:${CONTACT.phones[1].replace(/\s/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Phone size={11} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.phones[1]}
+            </a>
+            <a href={`mailto:${CONTACT.email}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Mail size={11} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.email}
+            </a>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 10.5, fontWeight: 600, color: '#5D6C65' }}>
+              <MapPin size={11} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.address}
+            </span>
+          </div>
+
+          {/* Mobile: every item shown, each on its own deliberate line (no unpredictable wrapping). Hidden at 768px+ via CSS class. */}
+          <div
+            className="ntvl-footer-compact"
+            style={{
+              display: 'none',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 3,
+              width: '100%',
+            }}
+          >
+            <a href={`tel:${CONTACT.phones[0].replace(/\s/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Phone size={10} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.phones[0]}
+            </a>
+            <a href={`tel:${CONTACT.phones[1].replace(/\s/g, '')}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Phone size={10} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.phones[1]}
+            </a>
+            <a href={`mailto:${CONTACT.email}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#5D6C65', textDecoration: 'none' }}>
+              <Mail size={10} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.email}
+            </a>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 600, color: '#5D6C65', textAlign: 'center' }}>
+              <MapPin size={10} color="#8A978F" style={{ flex: 'none' }} /> {CONTACT.address}
+            </span>
+          </div>
+
+          <span style={{ fontSize: 10, fontWeight: 500, color: '#B2BEB7', textAlign: 'center' }}>
+            © {new Date().getFullYear()} Nouradine Top Cash Logistics. All rights reserved.
+          </span>
+        </footer>
       </div>
 
       <style>{`
         @media (max-width: 767px) {
           .ntvl-mobile-topbar { display: flex !important; }
           .ntvl-drawer-close-btn { display: block !important; }
+          .ntvl-footer-full { display: none !important; }
+          .ntvl-footer-compact { display: flex !important; }
         }
       `}</style>
     </div>

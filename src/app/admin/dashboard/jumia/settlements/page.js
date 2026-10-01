@@ -3,10 +3,11 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
+import { authedFetch } from '@/lib/authedFetch';
 
 const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
 const ACCENT = '#0FA45C';
-const SET_COLS = '34px 1.1fr .6fr .7fr 1fr';
+const SET_COLS = '34px 1.1fr .6fr .7fr .9fr .9fr';
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #E7ECE8', boxShadow: '0 2px 10px rgba(18,41,31,.04)', overflow: 'hidden' };
 const headCell = { fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' };
@@ -15,12 +16,18 @@ function initials(name) {
   return (name || '?').split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
 }
 
+function approvalTag(status) {
+  if (status === 'approved') return { label: 'Approved', color: '#04763F', bg: '#DCF4E6' };
+  if (status === 'rejected') return { label: 'Rejected', color: '#C13239', bg: '#FDE4E6' };
+  return { label: 'Pending approval', color: '#8A6408', bg: '#FDF0D4' };
+}
+
 function RiderPicker({ onSelect }) {
   const [riders, setRiders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch('/api/admin/jumia/settlements')
+    authedFetch('/api/admin/jumia/settlements')
       .then((res) => res.json())
       .then((data) => {
         setRiders(Array.isArray(data) ? data : []);
@@ -66,7 +73,7 @@ function SettleView({ riderId, onBack }) {
     setLoading(true);
     Promise.all([
       fetch('/api/admin/jumia/manage').then((r) => r.json()),
-      fetch(`/api/admin/jumia/settlements?riderId=${riderId}`).then((r) => r.json()),
+      authedFetch(`/api/admin/jumia/settlements?riderId=${riderId}`).then((r) => r.json()),
     ]).then(([riders, data]) => {
       const found = riders.find((r) => r.id === riderId);
       setRider(found);
@@ -79,7 +86,12 @@ function SettleView({ riderId, onBack }) {
 
   useEffect(() => { load(); }, [riderId]);
 
-  const toggle = (id) => setSelected((s) => ({ ...s, [id]: !s[id] }));
+  // Only approved days can be selected for settlement — this mirrors the
+  // guard now enforced server-side in /api/admin/jumia/settlements.
+  const toggle = (u) => {
+    if (u.approval_status !== 'approved') return;
+    setSelected((s) => ({ ...s, [u.id]: !s[u.id] }));
+  };
 
   const selectedReports = unsettled.filter((u) => selected[u.id]);
   const selSum = selectedReports.reduce((sum, r) => sum + Number(r.total_amount), 0);
@@ -87,7 +99,7 @@ function SettleView({ riderId, onBack }) {
   const handleSettle = async () => {
     if (selectedReports.length === 0) return;
     setSettling(true);
-    await fetch('/api/admin/jumia/settlements', {
+    await authedFetch('/api/admin/jumia/settlements', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ riderId, reportIds: selectedReports.map((r) => r.id) }),
@@ -118,6 +130,7 @@ function SettleView({ riderId, onBack }) {
       </div>
 
       <div style={{ marginTop: 18, fontSize: 12.5, fontWeight: 800, color: '#2D4038' }}>Unsettled Reports</div>
+      <div style={{ marginTop: 6, fontSize: 11, fontWeight: 600, color: '#9AA8A0' }}>Only reports approved by the Jumia office can be selected for settlement.</div>
       <div style={{ marginTop: 9, border: '1px solid #E7ECE8', borderRadius: 14, overflow: 'hidden' }}>
       <div className="ntvl-table-scroll">
         <div className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: SET_COLS, gap: 10, padding: '10px 14px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
@@ -126,12 +139,20 @@ function SettleView({ riderId, onBack }) {
           <span style={headCell}>Small</span>
           <span style={headCell}>Medium</span>
           <span style={{ ...headCell, textAlign: 'right' }}>Amount</span>
+          <span style={headCell}>Approval</span>
         </div>
         {unsettled.length === 0 && <div style={{ padding: 16, textAlign: 'center', fontSize: 12, color: '#9AA8A0' }}>No unsettled reports.</div>}
         {unsettled.map((u) => {
           const on = !!selected[u.id];
+          const approved = u.approval_status === 'approved';
+          const tag = approvalTag(u.approval_status);
           return (
-            <div key={u.id} onClick={() => toggle(u.id)} className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: SET_COLS, gap: 10, padding: '11px 14px', alignItems: 'center', borderBottom: '1px solid #F1F4F2', cursor: 'pointer' }}>
+            <div
+              key={u.id}
+              onClick={() => toggle(u)}
+              className="ntvl-table-track"
+              style={{ display: 'grid', gridTemplateColumns: SET_COLS, gap: 10, padding: '11px 14px', alignItems: 'center', borderBottom: '1px solid #F1F4F2', cursor: approved ? 'pointer' : 'not-allowed', opacity: approved ? 1 : 0.6 }}
+            >
               <span style={{ width: 19, height: 19, borderRadius: 6, boxSizing: 'border-box', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#fff', background: on ? ACCENT : '#fff', border: `2px solid ${on ? ACCENT : '#C8D3CC'}` }}>
                 {on ? '✓' : ''}
               </span>
@@ -139,6 +160,7 @@ function SettleView({ riderId, onBack }) {
               <span style={{ fontSize: 12, fontWeight: 600, color: '#3A4C43' }}>{u.small_count}</span>
               <span style={{ fontSize: 12, fontWeight: 600, color: '#3A4C43' }}>{u.medium_count}</span>
               <span style={{ fontSize: 12.5, fontWeight: 800, color: '#10281C', textAlign: 'right' }}>₵{Number(u.total_amount).toFixed(2)}</span>
+              <span style={{ display: 'inline-flex', alignSelf: 'center', padding: '3px 9px', borderRadius: 999, fontSize: 10, fontWeight: 800, color: tag.color, background: tag.bg }}>{tag.label}</span>
             </div>
           );
         })}

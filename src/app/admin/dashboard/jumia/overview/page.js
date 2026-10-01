@@ -9,14 +9,131 @@ const ACCENT = '#0FA45C';
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #E7ECE8', boxShadow: '0 2px 10px rgba(18,41,31,.04)' };
 const kpiCard = { ...card, padding: '13px 13px 12px' };
+const chartCard = { ...card, padding: '14px 16px 12px' };
 const listCard = { ...card, padding: '12px 14px 6px' };
 const headCell = { fontSize: 10.5, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' };
 const numCell = { fontSize: 11, fontWeight: 700, color: '#3A4C43', textAlign: 'right' };
 const strongCell = { fontSize: 11, fontWeight: 800, color: '#10281C', textAlign: 'right' };
 const cardLinkRow = { display: 'flex', justifyContent: 'center', padding: '9px 4px 6px', fontSize: 11.5, fontWeight: 800 };
+const chartTitle = { fontSize: 12.5, fontWeight: 800, color: '#10281C', marginBottom: 8 };
 
 function initials(name) {
   return (name || '?').split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+}
+
+function shortDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+}
+
+function LineChart({ data, valueKey, color = ACCENT }) {
+  const W = 300, H = 130, PAD = 22;
+  const max = Math.max(1, ...data.map((d) => d[valueKey]));
+  const stepX = (W - PAD * 2) / Math.max(1, data.length - 1);
+  const points = data.map((d, i) => ({
+    x: PAD + i * stepX,
+    y: H - PAD - (d[valueKey] / max) * (H - PAD * 2),
+    d,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const areaPath = `${linePath} L${points[points.length - 1].x.toFixed(1)},${H - PAD} L${points[0].x.toFixed(1)},${H - PAD} Z`;
+  const labelEvery = Math.ceil(points.length / 5);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 130, display: 'block' }}>
+      {[0.25, 0.5, 0.75, 1].map((f) => (
+        <line key={f} x1={PAD} x2={W - PAD} y1={H - PAD - f * (H - PAD * 2)} y2={H - PAD - f * (H - PAD * 2)} stroke="#EDF1EE" strokeWidth="1" />
+      ))}
+      <path d={areaPath} fill={color} opacity="0.08" />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r="2.3" fill={color} />
+      ))}
+      {points.map((p, i) =>
+        i % labelEvery === 0 ? (
+          <text key={i} x={p.x} y={H - 6} fontSize="7" fill="#8D9A93" textAnchor="middle" fontFamily={FONT}>
+            {shortDate(p.d.date)}
+          </text>
+        ) : null
+      )}
+    </svg>
+  );
+}
+
+function BarChart({ data, valueKey, color = '#2E5C86', formatValue = (v) => v }) {
+  const W = 300, H = 130, PAD = 22;
+  const max = Math.max(1, ...data.map((d) => d[valueKey]));
+  const step = (W - PAD * 2) / data.length;
+  const barW = step * 0.6;
+  const labelEvery = Math.ceil(data.length / 5);
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: 130, display: 'block' }}>
+      {[0.25, 0.5, 0.75, 1].map((f) => (
+        <line key={f} x1={PAD} x2={W - PAD} y1={H - PAD - f * (H - PAD * 2)} y2={H - PAD - f * (H - PAD * 2)} stroke="#EDF1EE" strokeWidth="1" />
+      ))}
+      {data.map((d, i) => {
+        const h = (d[valueKey] / max) * (H - PAD * 2);
+        const x = PAD + i * step + (step - barW) / 2;
+        const y = H - PAD - h;
+        return (
+          <g key={i}>
+            <rect x={x} y={y} width={barW} height={Math.max(h, 0.5)} rx="2" fill={color} />
+            {i % labelEvery === 0 && (
+              <text x={x + barW / 2} y={H - 6} fontSize="7" fill="#8D9A93" textAnchor="middle" fontFamily={FONT}>
+                {shortDate(d.date)}
+              </text>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function DonutChart({ small, medium }) {
+  const total = small + medium;
+  const smallPct = total > 0 ? small / total : 0;
+  const R = 40, CX = 56, CY = 56, STROKE = 15;
+  const circumference = 2 * Math.PI * R;
+  const smallLen = smallPct * circumference;
+  const mediumLen = circumference - smallLen;
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+      <svg viewBox="0 0 112 112" style={{ width: 112, height: 112, flex: 'none' }}>
+        <circle cx={CX} cy={CY} r={R} fill="none" stroke="#EDF1EE" strokeWidth={STROKE} />
+        {total > 0 && (
+          <>
+            <circle
+              cx={CX} cy={CY} r={R} fill="none" stroke={ACCENT} strokeWidth={STROKE}
+              strokeDasharray={`${smallLen} ${circumference - smallLen}`}
+              strokeLinecap="round"
+              transform={`rotate(-90 ${CX} ${CY})`}
+            />
+            <circle
+              cx={CX} cy={CY} r={R} fill="none" stroke="#7A4A9E" strokeWidth={STROKE}
+              strokeDasharray={`${mediumLen} ${circumference - mediumLen}`}
+              strokeDashoffset={-smallLen}
+              strokeLinecap="round"
+              transform={`rotate(-90 ${CX} ${CY})`}
+            />
+          </>
+        )}
+        <text x={CX} y={CY - 2} textAnchor="middle" fontSize="15" fontWeight="800" fill="#10281C" fontFamily={FONT}>{total}</text>
+        <text x={CX} y={CY + 12} textAnchor="middle" fontSize="7.5" fontWeight="600" fill="#8D9A93" fontFamily={FONT}>packages</text>
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ flex: 'none', width: 9, height: 9, borderRadius: 3, background: ACCENT }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#3A4C43' }}>Small — {small} ({total ? Math.round(smallPct * 100) : 0}%)</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ flex: 'none', width: 9, height: 9, borderRadius: 3, background: '#7A4A9E' }} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: '#3A4C43' }}>Medium — {medium} ({total ? Math.round((1 - smallPct) * 100) : 0}%)</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function OverviewPage() {
@@ -30,7 +147,7 @@ export default function OverviewPage() {
     return <div style={{ fontSize: 13, color: '#9AA8A0', fontFamily: FONT }}>Loading...</div>;
   }
 
-  const { kpis, topRiders, oldestUnsettled, recentSettlements } = data;
+  const { kpis, daily, topRiders, oldestUnsettled, recentSettlements } = data;
 
   const kpiList = [
     { icon: Users, bg: '#DCF4E6', color: ACCENT, label: 'Total Enabled Riders', value: kpis.totalEnabled, sub: 'currently active' },
@@ -60,9 +177,20 @@ export default function OverviewPage() {
         ))}
       </div>
 
-      {/* Placeholder for charts — built in a follow-up pass */}
-      <div style={{ ...card, padding: '30px 20px', textAlign: 'center' }}>
-        <span style={{ fontSize: 12.5, color: '#9AA8A0', fontWeight: 600 }}>Charts (Delivery Trend, Amount by Period, Package Breakdown) — coming in the next pass.</span>
+      {/* Charts */}
+      <div className="ntvl-grid-3">
+        <div style={chartCard}>
+          <div style={chartTitle}>Delivery Reports Trend (14 Days)</div>
+          <LineChart data={daily} valueKey="reports" color={ACCENT} />
+        </div>
+        <div style={chartCard}>
+          <div style={chartTitle}>Amount by Day (14 Days)</div>
+          <BarChart data={daily} valueKey="amount" color="#2E5C86" />
+        </div>
+        <div style={chartCard}>
+          <div style={chartTitle}>Package Breakdown (All-Time)</div>
+          <DonutChart small={kpis.totalSmall} medium={kpis.totalMedium} />
+        </div>
       </div>
 
       {/* Three data tables */}
@@ -98,7 +226,7 @@ export default function OverviewPage() {
           {oldestUnsettled.map((o, i) => (
             <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.3fr 1.1fr .55fr .7fr .9fr .55fr', gap: 6, padding: '8px 3px', alignItems: 'center', borderBottom: '1px solid #F4F7F5' }}>
               <span style={{ fontSize: 11, fontWeight: 700, color: '#1B332A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{o.name}</span>
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#3A4C43' }}>{new Date(o.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#3A4C43' }}>{shortDate(o.date)}</span>
               <span style={numCell}>{o.small}</span>
               <span style={numCell}>{o.medium}</span>
               <span style={strongCell}>₵{o.amount.toFixed(0)}</span>
@@ -122,7 +250,7 @@ export default function OverviewPage() {
               </div>
               <span style={numCell}>{s.days}</span>
               <span style={strongCell}>₵{s.amount.toFixed(0)}</span>
-              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#3A4C43' }}>{new Date(s.on).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}</span>
+              <span style={{ fontSize: 10.5, fontWeight: 600, color: '#3A4C43' }}>{shortDate(s.on)}</span>
               <span style={{ fontSize: 10.5, fontWeight: 600, color: '#8D9A93' }}>{s.by}</span>
             </div>
           ))}
