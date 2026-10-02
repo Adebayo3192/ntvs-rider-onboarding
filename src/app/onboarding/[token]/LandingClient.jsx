@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#05C16A';
 
 const RULES = [
@@ -71,15 +71,15 @@ export default function LandingClient({ token, rider }) {
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '48px 22px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img
           src="/logo.png"
-          alt="NTVS"
+          alt="NTVL"
           style={{ width: 112, height: 112, objectFit: 'contain', display: 'block', flex: 'none', filter: 'drop-shadow(0 10px 24px rgba(0,0,0,.45))' }}
         />
 
         <h1 style={{ margin: '22px 0 0', fontSize: 27, lineHeight: 1.2, fontWeight: 800, letterSpacing: '-.5px', textAlign: 'center' }}>
-          Join the NTVS Rider Network
+          Join the NTVL Rider Network
         </h1>
         <p style={{ margin: '10px 0 0', fontSize: 13.5, lineHeight: 1.5, fontWeight: 500, color: 'rgba(255,255,255,.72)', textAlign: 'center', maxWidth: 280 }}>
-          Nouradine Top Cash Ventures — Fast and Reliable
+          Nouradine Top Cash Logistics — Fast and Reliable
         </p>
 
         <div style={{ marginTop: 26, width: '100%', flex: 'none', background: 'rgba(255,255,255,.055)', border: '1px solid rgba(255,255,255,.13)', borderRadius: 22, boxShadow: '0 18px 40px rgba(0,0,0,.3)', overflow: 'hidden' }}>
