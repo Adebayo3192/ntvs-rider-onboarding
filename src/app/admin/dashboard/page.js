@@ -4,9 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Users, Clock, CheckCircle2, XCircle, ArrowUpRight, TrendingUp, Zap, Link2, PlusCircle, BarChart3, Calendar } from 'lucide-react';
 import AddRiderModal from './riders/AddRiderModal';
+import { FONT, COLORS } from '@/lib/theme';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
-const ACCENT = '#0FA45C';
+const ACCENT = COLORS.accent;
 
 const card = {
   background: '#fff',
@@ -158,7 +158,7 @@ export default function DashboardHome() {
       </div>
 
       {/* Two-column layout */}
-      <div className="ntvl-grid-2col-wide" style={{ alignItems: 'start' }}>
+      <div className="ntvl-grid-2col-wide">
         {/* Left column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
           <div style={card}>
@@ -207,30 +207,8 @@ export default function DashboardHome() {
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 800, letterSpacing: '-.2px', color: '#10281C' }}>More Riders. More Opportunities.</div>
-              <div style={{ fontSize: 10.5, fontWeight: 500, color: '#5D6C65', marginTop: 2 }}>Help us grow our delivery network by onboarding more reliable riders.</div>
+              <div style={{ fontSize: 10.5, fontWeight: 500, color: '#5D6C65', marginTop: 2 }}>Help us grow our delivery network by onboarding more reliable riders — use the Generate Onboarding Link card to get started.</div>
             </div>
-            <button
-              onClick={() => setShowAddModal(true)}
-              style={{
-                flex: 'none',
-                height: 40,
-                padding: '0 16px',
-                border: 'none',
-                borderRadius: 12,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 7,
-                fontSize: 12.5,
-                fontWeight: 800,
-                color: '#fff',
-                cursor: 'pointer',
-                background: `linear-gradient(100deg,#0BAE5E,${ACCENT})`,
-                boxShadow: '0 8px 16px rgba(5,193,106,.26)',
-              }}
-            >
-              <Link2 size={14} /> Generate Link
-            </button>
           </div>
 
           <div style={card}>
@@ -270,7 +248,7 @@ export default function DashboardHome() {
 
         {/* Right column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, minWidth: 0 }}>
-          <div style={card}>
+          <div style={{ ...card, flex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px 10px' }}>
               <div style={hdrIconStyle}>
                 <Link2 size={19} color="#fff" />
@@ -280,7 +258,7 @@ export default function DashboardHome() {
                 <div style={{ fontSize: 10.5, fontWeight: 500, color: '#7C8A83', marginTop: 1 }}>Create a registration link to share with new riders.</div>
               </div>
             </div>
-            <div style={{ padding: '4px 15px 14px', display: 'flex', flexDirection: 'column', gap: 11 }}>
+            <div style={{ padding: '4px 15px 14px', display: 'flex', flexDirection: 'column', gap: 11, flex: 1 }}>
               <button
                 onClick={() => setShowAddModal(true)}
                 style={{
@@ -303,18 +281,18 @@ export default function DashboardHome() {
                 <PlusCircle size={15} /> Generate Onboarding Link
               </button>
 
-              <div style={{ padding: '11px 12px 10px', borderRadius: 12, background: '#F5F9F6', border: '1px solid #E7EEE9' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 8 }}>
+              <div style={{ padding: '16px 16px 14px', borderRadius: 12, background: '#F5F9F6', border: '1px solid #E7EEE9', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                   <div style={{ width: 19, height: 19, borderRadius: '50%', background: ACCENT, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 10.5, fontWeight: 800 }}>i</div>
                   <span style={{ fontSize: 10.5, fontWeight: 800, color: '#2D4038' }}>How it works?</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {HOW_IT_WORKS.map((text, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ flex: 'none', width: 17, height: 17, borderRadius: '50%', background: ACCENT, color: '#fff', fontSize: 9.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ flex: 'none', width: 20, height: 20, borderRadius: '50%', background: ACCENT, color: '#fff', fontSize: 10.5, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {i + 1}
                       </span>
-                      <span style={{ fontSize: 10, lineHeight: 1.3, fontWeight: 500, color: '#4E5D56' }}>{text}</span>
+                      <span style={{ fontSize: 11.5, lineHeight: 1.4, fontWeight: 500, color: '#4E5D56' }}>{text}</span>
                     </div>
                   ))}
                 </div>

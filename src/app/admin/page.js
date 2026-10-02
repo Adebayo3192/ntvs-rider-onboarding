@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, AlertCircle, ShieldCheck, Users, Zap } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+// Matches the shared NTVL design tokens (see src/lib/theme.js) — the
+// native OS system font stack, same accent green as the homepage.
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 export default function AdminLoginPage() {
@@ -21,14 +23,21 @@ export default function AdminLoginPage() {
     setError('');
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
     if (error) {
       setError('Invalid email or password. Please try again.');
     } else {
-      router.push('/admin/dashboard');
+      // Send a Jumia reviewer straight to their queue instead of the main
+      // admin dashboard — the dashboard layout used to redirect them there
+      // a moment *after* first rendering the full admin home screen,
+      // which showed up as a visible flash of the wrong page on login.
+      // Routing correctly from here, using the role we already have from
+      // sign-in, skips that detour entirely.
+      const role = data?.user?.user_metadata?.role;
+      router.push(role === 'jumia_reviewer' ? '/admin/dashboard/jumia' : '/admin/dashboard');
     }
   };
 
@@ -65,20 +74,23 @@ export default function AdminLoginPage() {
     fontFamily: FONT,
   };
 
+  const trustItems = [
+    { icon: ShieldCheck, label: ['Safe', 'Deliveries'] },
+    { icon: Users, label: ['Stronger', 'Communities'] },
+    { icon: Zap, label: ['A Better', 'Tomorrow'] },
+  ];
+
   return (
     <div className="ntvl-login-shell" style={{ height: '100dvh', display: 'flex', fontFamily: FONT, overflow: 'hidden' }}>
-      {/* Left branding panel */}
+      {/* Left branding panel — now the same hero photo used on the public
+          homepage, with the dark gradient treatment from the homepage's
+          rider-recruitment banner, instead of the old flat illustration.
+          This ties the admin portal visually back to the public site. */}
       <div
         className="ntvl-login-brand"
         style={{
           flex: '0 0 40%',
           minWidth: 380,
-          background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)',
-          color: '#fff',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '22px 48px 0',
           position: 'relative',
           overflow: 'hidden',
           height: '100%',
@@ -86,67 +98,104 @@ export default function AdminLoginPage() {
         }}
       >
         <img
-          src="/logo.png"
-          alt="NTVS"
-          style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 14px 32px rgba(0,0,0,.45))' }}
-        />
-
-        <h1 style={{ margin: '12px 0 0', fontSize: 22, fontWeight: 800, letterSpacing: '-1.4px', textAlign: 'center' }}>
-          NTVS Delivery
-        </h1>
-        <span style={{ marginTop: 5, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.72)' }}>
-          Admin Portal
-        </span>
-        <span style={{ marginTop: 10, width: 50, height: 3, borderRadius: 2, background: '#05C16A' }} />
-        <p style={{ margin: '10px 0 0', fontSize: 12, lineHeight: 1.35, fontWeight: 600, color: 'rgba(255,255,255,.86)', textAlign: 'center', maxWidth: 240 }}>
-          Building a stronger delivery network together
-        </p>
-
-        <div style={{ flex: 1, minHeight: 20 }} />
-
-        <img
-          src="/sidebar-illustration.svg"
+          src="/hero-rider.jpg"
           alt=""
-          style={{ width: 'calc(100% + 96px)', maxHeight: 120, objectFit: 'cover', objectPosition: 'bottom', margin: '0 -48px 0', display: 'block' }}
+          style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+        />
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(135deg, rgba(8,31,20,.93) 15%, rgba(18,69,43,.88) 100%)',
+          }}
         />
 
         <div
           style={{
-            width: 'calc(100% + 96px)',
-            margin: '0 -48px 0',
+            position: 'relative',
+            zIndex: 1,
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            padding: '8px 30px',
-            background: '#0B2418',
+            height: '100%',
+            padding: '22px 48px 0',
+            color: '#fff',
+            boxSizing: 'border-box',
           }}
         >
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3z" stroke="#4FE39C" strokeWidth="1.9" strokeLinejoin="round" />
-              <path d="M9 12.2l2.2 2.2 4-4.4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
-              Safe<br />Deliveries
-            </span>
-          </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <circle cx="9" cy="8" r="3" stroke="#4FE39C" strokeWidth="1.9" />
-              <path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
-              <circle cx="17" cy="9" r="2.4" stroke="#4FE39C" strokeWidth="1.7" />
-              <path d="M15.5 20c0-2.6 1.8-4.5 4.5-4.5" stroke="#4FE39C" strokeWidth="1.7" strokeLinecap="round" />
-            </svg>
-            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
-              Stronger<br />Communities
-            </span>
-          </div>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-              <path d="M4 20V14M11 20V10M18 20V4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
-            </svg>
-            <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
-              A Better<br />Tomorrow
-            </span>
+          <img
+            src="/logo.png"
+            alt="NTVS"
+            className="ntvl-login-logo"
+            style={{ width: 96, height: 96, objectFit: 'contain', filter: 'drop-shadow(0 14px 32px rgba(0,0,0,.45))' }}
+          />
+
+          <h1 style={{ margin: '12px 0 0', fontSize: 22, fontWeight: 800, letterSpacing: '-1.4px', textAlign: 'center' }}>
+            NTVS Delivery
+          </h1>
+          <span style={{ marginTop: 5, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,.72)' }}>
+            Admin Portal
+          </span>
+          <span style={{ marginTop: 10, width: 50, height: 3, borderRadius: 2, background: '#05C16A' }} />
+
+          {/* Caveat script accent — same handwritten-tag treatment as the
+              homepage hero photo's "Delivering a Better Tomorrow" label */}
+          <p
+            className="ntvl-login-caveat"
+            style={{
+              margin: '16px 0 0',
+              fontFamily: "'Caveat', cursive",
+              fontSize: 23,
+              fontWeight: 600,
+              color: '#fff',
+              textAlign: 'center',
+              maxWidth: 260,
+              lineHeight: 1.15,
+              transform: 'rotate(-2deg)',
+            }}
+          >
+            Building a stronger delivery network, together
+          </p>
+
+          <div className="ntvl-login-spacer" style={{ flex: 1, minHeight: 20 }} />
+
+          <div
+            className="ntvl-login-trust-row"
+            style={{
+              width: 'calc(100% + 96px)',
+              margin: '0 -48px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-around',
+              padding: '20px 20px 26px',
+              background: 'rgba(7,26,17,.5)',
+              backdropFilter: 'blur(3px)',
+              borderTop: '1px solid rgba(255,255,255,.12)',
+              boxSizing: 'border-box',
+            }}
+          >
+            {trustItems.map(({ icon: Icon, label }) => (
+              <div key={label.join(' ')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, textAlign: 'center' }}>
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: '50%',
+                    background: 'rgba(79,227,156,.16)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flex: 'none',
+                  }}
+                >
+                  <Icon size={16} color="#4FE39C" />
+                </div>
+                <span style={{ fontSize: 10, lineHeight: 1.25, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>
+                  {label[0]}<br />{label[1]}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -157,44 +206,54 @@ export default function AdminLoginPage() {
         style={{
           flex: 1,
           height: '100%',
-          background: '#F7FBF8',
+          // Warm mint-to-cream gradient instead of flat near-white —
+          // same base tones as the homepage sections — plus the dot
+          // texture and color blobs below give it real depth instead of
+          // reading as an empty page around the card.
+          background: 'linear-gradient(135deg, #F3FAF6 0%, #F5F7F2 100%)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           padding: 24,
           position: 'relative',
-          overflowY: 'auto',
-          overflowX: 'hidden',
+          overflow: 'hidden',
           boxSizing: 'border-box',
         }}
       >
+        {/* Small repeated logo watermark instead of plain dots — same
+            fade-around-the-card treatment, but it's actually the NTVL
+            mark rather than a generic texture. */}
+        <div className="ntvl-login-dots" />
+
         <div
           style={{
             position: 'absolute',
             top: -120,
             right: -100,
-            width: 420,
-            height: 420,
+            width: 460,
+            height: 460,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(15,164,92,.14) 0%, rgba(15,164,92,0) 70%)',
+            background: 'radial-gradient(circle, rgba(15,164,92,.20) 0%, rgba(15,164,92,0) 70%)',
             pointerEvents: 'none',
           }}
         />
         <div
           style={{
             position: 'absolute',
-            bottom: -160,
-            left: -120,
-            width: 480,
-            height: 480,
+            bottom: -170,
+            left: -130,
+            width: 520,
+            height: 520,
             borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(15,164,92,.10) 0%, rgba(15,164,92,0) 70%)',
+            background: 'radial-gradient(circle, rgba(15,164,92,.16) 0%, rgba(15,164,92,0) 70%)',
             pointerEvents: 'none',
           }}
         />
         <form
           onSubmit={handleLogin}
           style={{
+            position: 'relative',
+            zIndex: 1,
             width: '100%',
             maxWidth: 460,
             background: '#fff',
@@ -269,17 +328,11 @@ export default function AdminLoginPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-            <a href="#" style={{ fontSize: 11.5, fontWeight: 700, color: ACCENT, textDecoration: 'underline' }}>
-              Forgot password?
-            </a>
-          </div>
-
           <button
             type="submit"
             disabled={loading}
             style={{
-              marginTop: 12,
+              marginTop: 20,
               width: '100%',
               height: 44,
               border: 'none',
@@ -312,9 +365,50 @@ export default function AdminLoginPage() {
       </div>
 
       <style>{`
+        .ntvl-login-dots {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: .09;
+          background-image: url('/logo.png');
+          background-repeat: repeat;
+          background-size: 46px 46px;
+          background-position: 0 0;
+          /* Fades the watermark out in a circle centered on the card, so
+             it reads at the edges but never shows through the form. */
+          -webkit-mask-image: radial-gradient(circle at 50% 45%, transparent 0px, transparent 220px, black 460px);
+          mask-image: radial-gradient(circle at 50% 45%, transparent 0px, transparent 220px, black 460px);
+        }
+
+        /* On narrow screens, the brand panel used to disappear entirely,
+           leaving a bare white page around the form — instead it becomes a
+           shorter photo banner across the top, so the page still carries
+           the hero photo and brand color rather than going blank. */
         @media (max-width: 767px) {
-          .ntvl-login-brand { display: none !important; }
-          .ntvl-login-form { flex: 1 1 100% !important; }
+          .ntvl-login-shell {
+            flex-direction: column !important;
+            height: auto !important;
+            min-height: 100dvh !important;
+            overflow: visible !important;
+          }
+          .ntvl-login-brand {
+            flex: 0 0 auto !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            height: 190px !important;
+            padding: 18px 24px !important;
+          }
+          .ntvl-login-logo { width: 56px !important; height: 56px !important; }
+          .ntvl-login-caveat,
+          .ntvl-login-trust-row,
+          .ntvl-login-spacer {
+            display: none !important;
+          }
+          .ntvl-login-form {
+            flex: 1 1 auto !important;
+            height: auto !important;
+            padding: 28px 16px 40px !important;
+          }
         }
       `}</style>
     </div>

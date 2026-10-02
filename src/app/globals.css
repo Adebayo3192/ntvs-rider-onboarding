@@ -1,9 +1,37 @@
+/* Font imports must come BEFORE @import "tailwindcss" — Tailwind v4's
+   import expands into hundreds of real CSS rules at build time, and once
+   that happens, any @import written after it is no longer textually
+   first in the resolved stylesheet, which CSS doesn't allow.
+   The main UI font is now the native OS system-font stack (no webfont
+   to load for it) — Caveat is still loaded for the sparing script-accent
+   use (hero tags, flourishes). */
+@import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap");
 @import "tailwindcss";
 @import 'leaflet/dist/leaflet.css';
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* ============================================
+     NTVL brand tokens — from the homepage redesign.
+     Use these (or the matching src/lib/theme.js JS
+     exports) across the dashboard, Jumia pages and
+     rider onboarding instead of ad-hoc colors, so the
+     whole product reads as one system.
+     ============================================ */
+  --ntvl-forest: #0b2418;
+  --ntvl-forest-light: #14432a;
+  --ntvl-accent: #0fa45c;
+  --ntvl-accent-dark: #0b8b4e;
+  --ntvl-mint: #f3faf6;
+  --ntvl-cream: #f5f7f2;
+  --ntvl-muted: #617067;
+  --ntvl-muted-2: #7c8a83;
+  --ntvl-line: #dce4de;
+  --ntvl-icon-tint: #dcf4e6;
+  --ntvl-font: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --ntvl-font-accent: "Caveat", cursive;
 }
 
 @theme inline {
@@ -23,7 +51,69 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--ntvl-font);
+}
+
+/* ============================================
+   NTVL shared component classes — reusable buttons,
+   cards and icon chips matching the homepage design.
+   ============================================ */
+.ntvl-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 6px;
+  border: none;
+  font-family: var(--ntvl-font);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.ntvl-btn:hover { transform: translateY(-2px); }
+.ntvl-btn-primary {
+  color: #fff;
+  background: var(--ntvl-accent);
+  box-shadow: 0 10px 22px rgba(15, 164, 92, .24);
+}
+.ntvl-btn-primary:hover { background: var(--ntvl-accent-dark); }
+.ntvl-btn-outline {
+  color: var(--ntvl-forest-light);
+  border: 1.5px solid var(--ntvl-line);
+  background: transparent;
+}
+
+.ntvl-card {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid var(--ntvl-line);
+  padding: 22px;
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.ntvl-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(15, 164, 92, .35);
+  box-shadow: 0 16px 36px rgba(11, 36, 24, .08);
+}
+
+.ntvl-icon-chip {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--ntvl-icon-tint);
+  color: var(--ntvl-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.ntvl-dark-band {
+  color: #fff;
+  background: linear-gradient(116deg, var(--ntvl-forest), var(--ntvl-forest-light));
 }
 /* ============================================
    NTVL Responsive Utilities

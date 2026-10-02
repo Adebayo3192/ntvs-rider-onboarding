@@ -126,7 +126,15 @@ function Icon({ name, size = 22 }) {
       </>
     ),
     spark: <path d="m12 2 1.7 6.3L20 10l-6.3 1.7L12 18l-1.7-6.3L4 10l6.3-1.7L12 2Z" />,
-    twitter: <path d="M21 5.5c-.7.3-1.4.5-2.2.6A3.8 3.8 0 0 0 12.2 8c0 .3 0 .6.1.9A10.8 10.8 0 0 1 4.5 5c-1.1 1.9-.5 4.4 1.2 5.5-.6 0-1.2-.2-1.7-.5 0 2 1.4 3.7 3.3 4.1-.6.2-1.2.2-1.7.1.5 1.7 2.1 2.9 3.9 2.9A7.7 7.7 0 0 1 3 18.9 10.8 10.8 0 0 0 19.6 9.8v-.5c.7-.5 1.4-1.1 1.9-1.9-.7.3-1.5.5-2.2.6.8-.5 1.4-1.3 1.7-2.2Z" />,
+    // X (formerly Twitter) — current wordmark-free logo, filled rather
+    // than stroked like the other icons here since it reads better solid.
+    x: (
+      <path
+        fill="currentColor"
+        stroke="none"
+        d="M17.53 3h3.2l-7 8 8.24 10.5h-6.45l-5.05-6.42L4.4 21.5H1.2l7.49-8.56L.77 3h6.61l4.57 5.83L17.53 3Zm-1.12 16.59h1.77L6.66 4.82H4.76l11.65 14.77Z"
+      />
+    ),
   };
 
   return (
@@ -406,17 +414,17 @@ export default function HomePage() {
             <div>
               <span aria-label="Facebook"><Icon name="facebook" size={17} /></span>
               <span aria-label="Instagram"><Icon name="instagram" size={17} /></span>
-              <span aria-label="Twitter"><Icon name="twitter" size={17} /></span>
+              <span aria-label="X"><Icon name="x" size={17} /></span>
             </div>
           </div>
         </div>
       </footer>
 
       <style>{`
-        @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Manrope:wght@400;500;600;700;800&display=swap");
+        @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap");
 
         .site-shell {
-          font-family: "Manrope", sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
           color: #10231a;
           background: #fff;
           overflow: hidden;
@@ -451,7 +459,16 @@ export default function HomePage() {
           display: none; width: 40px; height: 40px; border-radius: 10px; border: none;
           background: #f2f6f3; color: #0b2418; align-items: center; justify-content: center; cursor: pointer;
         }
-        .mobile-menu { display: flex; flex-direction: column; gap: 2px; padding: 4px 24px 18px; border-top: 1px solid #edf2ee; }
+        .mobile-menu {
+          position: relative;
+          z-index: 25;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding: 4px 24px 18px;
+          background: #fff; /* explicit, solid — never inherit/transparent, so the hero photo can't show through behind the text */
+          border-top: 1px solid #edf2ee;
+        }
         .mobile-menu a { padding: 10px 4px; font-size: 14px; font-weight: 700; color: #3a4c43; display: flex; align-items: center; gap: 6px; }
 
         .button {

@@ -17,6 +17,13 @@ const CONTACT = {
 
 export default function DashboardLayout({ children }) {
   const [checking, setChecking] = useState(true);
+  // Controls the loader's exit animation: once the real session check
+  // finishes (checking -> false), the bike plays its ride-off animation
+  // for a fixed duration, then the loader actually unmounts. This is a
+  // visual transition tied to a real completion event, not an artificial
+  // delay — the dashboard itself is already ready underneath it.
+  const [loaderExiting, setLoaderExiting] = useState(false);
+  const [showLoader, setShowLoader] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   // 'admin' (default) or 'jumia_reviewer' — read from the Supabase Auth
@@ -42,6 +49,15 @@ export default function DashboardLayout({ children }) {
   useEffect(() => {
     setDrawerOpen(false);
   }, [pathname]);
+
+  // Session check just finished — play the bike's ride-off exit (550ms),
+  // then swap the loader out for the real dashboard.
+  useEffect(() => {
+    if (checking) return;
+    setLoaderExiting(true);
+    const t = setTimeout(() => setShowLoader(false), 550);
+    return () => clearTimeout(t);
+  }, [checking]);
 
   // A jumia_reviewer landing on the main dashboard home (or the riders
   // section) gets sent straight to the Jumia Reports queue instead — those
@@ -73,136 +89,175 @@ export default function DashboardLayout({ children }) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/admin');
+    // Logging out ends the admin/reviewer session entirely, so send them
+    // back to the public homepage — not the login screen — same as
+    // leaving any site after signing out.
+    router.push('/');
   };
 
-  if (checking) {
+  if (showLoader) {
     return (
-      <div style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)', fontFamily: FONT }}>
-        <img src="/logo.png" alt="NTVL" style={{ width: 64, height: 64, objectFit: 'contain', filter: 'drop-shadow(0 10px 22px rgba(0,0,0,.4))' }} />
-        <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid rgba(255,255,255,.15)', borderTopColor: '#05C16A', animation: 'ntvl-spin 0.8s linear infinite' }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,.6)' }}>Checking session...</span>
-        <style>{`@keyframes ntvl-spin { to { transform: rotate(360deg); } }`}</style>
+      <div
+        style={{
+          minHeight: '100dvh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 22,
+          background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)',
+          fontFamily: FONT,
+          overflow: 'hidden',
+        }}
+      >
+        <img
+          src="/logo.png"
+          alt="NTVL"
+          style={{
+            width: 56,
+            height: 56,
+            objectFit: 'contain',
+            filter: 'drop-shadow(0 10px 22px rgba(0,0,0,.4))',
+            opacity: loaderExiting ? 0 : 1,
+            transition: 'opacity .25s ease',
+          }}
+        />
+
+        {/* Riding track — the bike loops in place (wheels spinning, a
+            slight bob) while the session check is in flight, then
+            accelerates and rides off the right edge once it's done. */}
+        <div className="ntvl-bike-track">
+          <div className={`ntvl-bike-wrap${loaderExiting ? ' ntvl-bike-exit' : ''}`}>
+            <svg width="110" height="64" viewBox="0 0 110 64" fill="none">
+              {/* speed lines — only visible during the exit, suggesting acceleration */}
+              <g className="ntvl-bike-speedlines" stroke="rgba(79,227,156,.55)" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="-6" y1="28" x2="14" y2="28" />
+                <line x1="-14" y1="38" x2="8" y2="38" />
+                <line x1="-10" y1="48" x2="10" y2="48" />
+              </g>
+              {/* frame */}
+              <path d="M27 48 L46 23 L66 48 M46 23 L55 48 M66 48 L80 27" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M24 46 L31 46" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
+              <path d="M78 24 L86 22" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
+              {/* rider */}
+              <circle cx="56" cy="12" r="5.2" fill="#fff" />
+              <path d="M56 17 L50 29 M56 17 L65 24" stroke="#fff" strokeWidth="3.2" strokeLinecap="round" />
+              {/* wheels */}
+              <g className="ntvl-wheel" style={{ transformOrigin: '27px 48px' }}>
+                <circle cx="27" cy="48" r="12" stroke="#4FE39C" strokeWidth="3" />
+                <line x1="27" y1="38" x2="27" y2="58" stroke="#4FE39C" strokeWidth="1.4" />
+                <line x1="17" y1="48" x2="37" y2="48" stroke="#4FE39C" strokeWidth="1.4" />
+              </g>
+              <g className="ntvl-wheel" style={{ transformOrigin: '80px 48px' }}>
+                <circle cx="80" cy="48" r="12" stroke="#4FE39C" strokeWidth="3" />
+                <line x1="80" y1="38" x2="80" y2="58" stroke="#4FE39C" strokeWidth="1.4" />
+                <line x1="70" y1="48" x2="90" y2="48" stroke="#4FE39C" strokeWidth="1.4" />
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: 'rgba(255,255,255,.6)',
+            opacity: loaderExiting ? 0 : 1,
+            transition: 'opacity .2s ease',
+          }}
+        >
+          Checking session...
+        </span>
+
+        <style>{`
+          .ntvl-bike-track {
+            width: 100%;
+            max-width: 220px;
+            overflow: hidden;
+            position: relative;
+            height: 64px;
+          }
+          .ntvl-bike-wrap {
+            width: 110px;
+            margin: 0 auto;
+            animation: ntvl-bike-bob 0.9s ease-in-out infinite;
+          }
+          .ntvl-bike-wrap .ntvl-wheel {
+            animation: ntvl-wheel-spin 0.6s linear infinite;
+          }
+          .ntvl-bike-wrap .ntvl-bike-speedlines {
+            opacity: 0;
+            transition: opacity .15s ease;
+          }
+          @keyframes ntvl-bike-bob {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+          }
+          @keyframes ntvl-wheel-spin {
+            to { transform: rotate(360deg); }
+          }
+          /* Exit: bike accelerates off the right edge of its track while
+             the wheels spin faster and speed lines fade in behind it. */
+          .ntvl-bike-wrap.ntvl-bike-exit {
+            animation: ntvl-bike-rideoff 0.55s cubic-bezier(.55,0,1,.45) forwards;
+          }
+          .ntvl-bike-wrap.ntvl-bike-exit .ntvl-wheel {
+            animation: ntvl-wheel-spin 0.15s linear infinite;
+          }
+          .ntvl-bike-wrap.ntvl-bike-exit .ntvl-bike-speedlines {
+            opacity: 1;
+          }
+          @keyframes ntvl-bike-rideoff {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(340px); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .ntvl-bike-wrap, .ntvl-bike-wrap .ntvl-wheel, .ntvl-bike-wrap.ntvl-bike-exit {
+              animation: none !important;
+            }
+          }
+        `}</style>
       </div>
     );
   }
 
-  const navItem = (href, label, Icon) => {
+  // Nav links now live in the white top bar instead of a dedicated
+  // vertical sidebar — horizontal row on desktop, a small dropdown panel
+  // on mobile (see below), matching the homepage's own nav treatment:
+  // plain text links with a green underline/color for the active one,
+  // not solid green pills.
+  const navItem = (href, label, Icon, { mobile } = {}) => {
     const active = href === '/admin/dashboard' ? pathname === href : pathname.startsWith(href);
     return (
       <Link
+        key={href}
         href={href}
+        onClick={() => setDrawerOpen(false)}
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 10,
-          padding: '10px 14px',
-          borderRadius: 11,
-          color: active ? '#06281A' : 'rgba(255,255,255,.82)',
-          background: active ? ACCENT : 'transparent',
+          gap: 8,
+          padding: mobile ? '10px 6px' : '4px 2px',
+          color: active ? ACCENT : '#3A4C43',
           fontWeight: 700,
           fontSize: 13.5,
           textDecoration: 'none',
           fontFamily: FONT,
+          borderBottom: mobile ? 'none' : `2px solid ${active ? ACCENT : 'transparent'}`,
         }}
       >
-        <Icon size={17} />
+        <Icon size={16} />
         {label}
       </Link>
     );
   };
 
-  const sidebarInner = (
-    <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 18px 14px' }}>
-        <img src="/logo.png" alt="NTVL" style={{ width: 32, height: 32, objectFit: 'contain', flex: 'none' }} />
-        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <span style={{ fontSize: 13.5, fontWeight: 800, letterSpacing: '-.2px', whiteSpace: 'nowrap' }}>NTVL Delivery</span>
-          <span style={{ fontSize: 9.5, fontWeight: 600, color: 'rgba(255,255,255,.62)' }}>Fast · Safe · Reliable</span>
-        </div>
-        <X
-          size={20}
-          color="rgba(255,255,255,.7)"
-          onClick={() => setDrawerOpen(false)}
-          className="ntvl-drawer-close-btn"
-          style={{ marginLeft: 'auto', cursor: 'pointer', display: 'none' }}
-        />
-      </div>
-
-      <nav style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '6px 12px' }}>
-        {!isReviewer && navItem('/admin/dashboard', 'Dashboard', LayoutDashboard)}
-        {!isReviewer && navItem('/admin/dashboard/riders', 'Riders', Users)}
-        {navItem('/admin/dashboard/jumia', 'Jumia Delivery Reports', Package)}
-      </nav>
-
-      <div style={{ flex: 1, minHeight: 20, overflowY: 'auto' }} />
-
-      <img src="/sidebar-illustration.svg" alt="" style={{ width: '100%', display: 'block', flex: 'none' }} />
-
-      <div style={{ padding: '12px 16px', background: '#0B2418', display: 'flex', flexDirection: 'column', gap: 8, flex: 'none' }}>
-        <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,.86)', lineHeight: 1.3, marginBottom: 2 }}>
-          Building a stronger delivery network together
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3z" stroke="#4FE39C" strokeWidth="1.9" strokeLinejoin="round" />
-            <path d="M9 12.2l2.2 2.2 4-4.4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>Safe Deliveries</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <circle cx="9" cy="8" r="3" stroke="#4FE39C" strokeWidth="1.9" />
-            <path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
-            <circle cx="17" cy="9" r="2.4" stroke="#4FE39C" strokeWidth="1.7" />
-            <path d="M15.5 20c0-2.6 1.8-4.5 4.5-4.5" stroke="#4FE39C" strokeWidth="1.7" strokeLinecap="round" />
-          </svg>
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>Stronger Communities</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M4 20V14M11 20V10M18 20V4" stroke="#4FE39C" strokeWidth="1.9" strokeLinecap="round" />
-          </svg>
-          <span style={{ fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,.86)' }}>A Better Tomorrow</span>
-        </div>
-      </div>
-    </>
-  );
-
   return (
-    <div className="ntvl-shell" style={{ minHeight: '100dvh', display: 'flex', fontFamily: FONT }}>
-      {/* Mobile drawer overlay */}
-      <div
-        className={`ntvl-drawer-overlay ${drawerOpen ? 'ntvl-drawer-open' : ''}`}
-        onClick={() => setDrawerOpen(false)}
-      />
-
-      {/* Sidebar — pinned to the screen with position:fixed (via the CSS
-          class, not inline, so the mobile media query can still override
-          it for the slide-out drawer). Being truly "fixed" rather than
-          "sticky" means it's taken out of the page's normal flow entirely
-          — it never moves, never scrolls with the page, and never depends
-          on any ancestor's height or overflow settings (which is what
-          made the old sticky approach fragile). The main column below
-          gets a matching margin-left on desktop so its content doesn't
-          render underneath the fixed sidebar. */}
-      <div
-        className={`ntvl-sidebar-desktop ${drawerOpen ? 'ntvl-drawer-open' : ''}`}
-        style={{
-          background: 'linear-gradient(180deg, #0B2418 0%, #0E2A1D 40%, #14432A 100%)',
-          color: '#fff',
-        }}
-      >
-        {sidebarInner}
-      </div>
-
-      {/* Main column — the ntvl-main-column class adds margin-left on
-          desktop to clear the fixed sidebar (0 on mobile, where the
-          sidebar is an off-canvas drawer instead). No fixed height, no
-          overflow trap: the page itself scrolls naturally; only the
-          header is pinned (via sticky). */}
-      <div className="ntvl-main-column" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#F7FBF8' }}>
-        {/* Desktop topbar */}
+    <div className="ntvl-shell" style={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', fontFamily: FONT }}>
+      <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', background: '#F7FBF8' }}>
+        {/* Top bar — logo, horizontal nav (desktop), notifications and the
+            admin account menu. This is now the only navigation chrome;
+            there is no separate sidebar. */}
         <header
           style={{
             position: 'sticky',
@@ -218,10 +273,12 @@ export default function DashboardLayout({ children }) {
             borderBottom: '1px solid #E7ECE8',
           }}
         >
-          {/* Mobile hamburger — only visible under 768px via CSS */}
+          {/* Mobile hamburger — toggles the nav dropdown below; only
+              visible under 768px via CSS. Icon swaps to an X when open,
+              same pattern as the homepage's mobile menu. */}
           <div
             className="ntvl-mobile-topbar"
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setDrawerOpen((s) => !s)}
             style={{
               flex: 'none',
               width: 36,
@@ -233,12 +290,27 @@ export default function DashboardLayout({ children }) {
               cursor: 'pointer',
             }}
           >
-            <Menu size={18} color="#31473C" />
+            {drawerOpen ? <X size={18} color="#31473C" /> : <Menu size={18} color="#31473C" />}
           </div>
 
-          <span className="ntvl-desktop-topbar-label" style={{ fontSize: 15.5, fontWeight: 800, color: '#12291F', letterSpacing: '-.3px' }}>
-            NTVL Delivery
-          </span>
+          {/* Logo doubles as "back to the public site" — clicking it from
+              anywhere in the dashboard takes you off the admin shell
+              entirely. Now lives in the top bar since there's no sidebar
+              to hold it. */}
+          <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', flex: 'none' }}>
+            <img src="/logo.png" alt="NTVL" style={{ width: 30, height: 30, objectFit: 'contain' }} />
+            <span className="ntvl-desktop-topbar-label" style={{ fontSize: 15.5, fontWeight: 800, color: '#12291F', letterSpacing: '-.3px' }}>
+              NTVL Delivery
+            </span>
+          </Link>
+
+          {/* Horizontal nav — desktop only (hidden under 768px via the
+              existing ntvl-desktop-topbar-label class). */}
+          <nav className="ntvl-desktop-topbar-label" style={{ alignItems: 'center', gap: 22, marginLeft: 26 }}>
+            {!isReviewer && navItem('/admin/dashboard', 'Dashboard', LayoutDashboard)}
+            {!isReviewer && navItem('/admin/dashboard/riders', 'Riders', Users)}
+            {navItem('/admin/dashboard/jumia', 'Jumia Delivery Reports', Package)}
+          </nav>
 
           <div style={{ flex: 1 }} />
 
@@ -300,6 +372,33 @@ export default function DashboardLayout({ children }) {
             )}
           </div>
         </header>
+
+        {/* Mobile nav dropdown — only ever mounted via the hamburger
+            above, which only exists under 768px, so this never shows on
+            desktop. Floats over the page content rather than pushing it
+            down, closes itself on navigation (see the pathname effect
+            above) or by tapping the hamburger again. */}
+        {drawerOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 64,
+              left: 0,
+              right: 0,
+              zIndex: 39,
+              background: '#fff',
+              borderBottom: '1px solid #E7ECE8',
+              boxShadow: '0 14px 28px rgba(18,41,31,.1)',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '6px 18px 12px',
+            }}
+          >
+            {!isReviewer && navItem('/admin/dashboard', 'Dashboard', LayoutDashboard, { mobile: true })}
+            {!isReviewer && navItem('/admin/dashboard/riders', 'Riders', Users, { mobile: true })}
+            {navItem('/admin/dashboard/jumia', 'Jumia Delivery Reports', Package, { mobile: true })}
+          </div>
+        )}
 
         {/* flex:1 (no minHeight:0) makes this grow to fill any leftover
             space when a page's content is short — pushing the footer down
@@ -388,7 +487,6 @@ export default function DashboardLayout({ children }) {
       <style>{`
         @media (max-width: 767px) {
           .ntvl-mobile-topbar { display: flex !important; }
-          .ntvl-drawer-close-btn { display: block !important; }
           .ntvl-footer-full { display: none !important; }
           .ntvl-footer-compact { display: flex !important; }
         }
