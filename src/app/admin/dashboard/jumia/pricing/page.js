@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const fieldLabel = { display: 'block', fontSize: 12, fontWeight: 800, color: '#2D4038', marginBottom: 7 };
@@ -17,7 +18,7 @@ export default function PricingPage() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetch('/api/jumia/pricing')
+    authedFetch('/api/jumia/pricing')
       .then((res) => res.json())
       .then((data) => {
         setSmall(String(data.small_price ?? 0));
@@ -29,12 +30,17 @@ export default function PricingPage() {
   const handleSave = async () => {
     setSaving(true);
     setSaved(false);
-    await fetch('/api/jumia/pricing', {
+    const res = await authedFetch('/api/jumia/pricing', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ smallPrice: parseFloat(small) || 0, mediumPrice: parseFloat(medium) || 0 }),
     });
     setSaving(false);
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Could not save the prices.');
+      return;
+    }
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };

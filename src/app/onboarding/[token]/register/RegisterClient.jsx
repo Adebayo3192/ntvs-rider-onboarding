@@ -5,7 +5,7 @@ import LocationPicker from './LocationPicker';
 import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#05C16A';
 
 const input = {

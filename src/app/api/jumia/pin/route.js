@@ -5,15 +5,20 @@ import { createJumiaSessionToken, JUMIA_COOKIE_NAME, JUMIA_COOKIE_MAX_AGE } from
 const MAX_ATTEMPTS = 5;
 
 export async function POST(request) {
-  const { token, pin, action } = await request.json();
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
 
-  if (!token || !pin || !/^\d{4}$/.test(pin)) {
+  const { token, pin, action } = body;
+
+  if (typeof token !== 'string' || !token || typeof pin !== 'string' || !/^\d{4}$/.test(pin)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
   const { data: rider, error: fetchError } = await supabaseAdmin
     .from('riders')
-    .select('id, jumia_pin, jumia_enabled, jumia_locked, jumia_pin_attempts')
+    .select('id, jumia_pin, jumia_enabled, jumia_locked')
     .eq('jumia_token', token)
     .single();
 
@@ -32,43 +37,71 @@ export async function POST(request) {
 
   if (action === 'create') {
     if (rider.jumia_pin) {
-      return NextResponse.json({ error: 'A PIN has already been set for this account.' }, { status: 400 });
+      return NextResponse.json({ error: 'A PIN has already been set for this account.', code: 'pin_exists' }, { status: 400 });
     }
-    const { error } = await supabaseAdmin
+    // Only write if the PIN is still empty, so two create requests racing
+    // each other can't both win — the second one updates zero rows.
+    const { data: created, error } = await supabaseAdmin
       .from('riders')
       .update({ jumia_pin: pin, jumia_pin_attempts: 0 })
-      .eq('id', rider.id);
+      .eq('id', rider.id)
+      .is('jumia_pin', null)
+      .select('id')
+      .maybeSingle();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!created) {
+      return NextResponse.json({ error: 'A PIN has already been set for this account.', code: 'pin_exists' }, { status: 400 });
+    }
 
     const res = NextResponse.json({ success: true });
     res.cookies.set(JUMIA_COOKIE_NAME, createJumiaSessionToken(rider.id), {
-      httpOnly: true, secure: true, sameSite: 'lax', maxAge: JUMIA_COOKIE_MAX_AGE, path: '/',
+      httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: JUMIA_COOKIE_MAX_AGE, path: '/',
     });
     return res;
   }
 
   if (action === 'verify') {
-    if (rider.jumia_pin !== pin) {
-      const attempts = (rider.jumia_pin_attempts || 0) + 1;
-      const lockedNow = attempts >= MAX_ATTEMPTS;
-      await supabaseAdmin
-        .from('riders')
-        .update({ jumia_pin_attempts: attempts, jumia_locked: lockedNow })
-        .eq('id', rider.id);
+    // No PIN yet means there is nothing to guess — don't count it as a
+    // failed attempt.
+    if (!rider.jumia_pin) {
+      return NextResponse.json({ error: 'No PIN has been set for this account yet.', code: 'no_pin' }, { status: 400 });
+    }
 
+    // jumia_verify_pin (a Postgres function) locks the rider's row, compares
+    // the PIN and updates the attempt counter / lock in one transaction, so
+    // a burst of parallel guesses is checked one at a time and can never get
+    // more than MAX_ATTEMPTS tries.
+    const { data: result, error } = await supabaseAdmin.rpc('jumia_verify_pin', {
+      p_rider_id: rider.id,
+      p_pin: pin,
+      p_max_attempts: MAX_ATTEMPTS,
+    });
+
+    if (error) {
+      console.error('jumia_verify_pin failed:', error);
+      return NextResponse.json({ error: 'Something went wrong. Please try again.' }, { status: 500 });
+    }
+
+    if (result === 'ok') {
+      const res = NextResponse.json({ success: true });
+      res.cookies.set(JUMIA_COOKIE_NAME, createJumiaSessionToken(rider.id), {
+        httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: JUMIA_COOKIE_MAX_AGE, path: '/',
+      });
+      return res;
+    }
+
+    if (result === 'no_pin') {
+      return NextResponse.json({ error: 'No PIN has been set for this account yet.', code: 'no_pin' }, { status: 400 });
+    }
+
+    if (result === 'locked' || result === 'locked_now') {
       return NextResponse.json(
-        { error: lockedNow ? 'Too many incorrect attempts. This PIN is now locked — contact your admin.' : 'Incorrect PIN' },
-        { status: lockedNow ? 423 : 401 }
+        { error: 'Too many incorrect attempts. This PIN is now locked — contact your admin.' },
+        { status: 423 }
       );
     }
 
-    await supabaseAdmin.from('riders').update({ jumia_pin_attempts: 0 }).eq('id', rider.id);
-
-    const res = NextResponse.json({ success: true });
-    res.cookies.set(JUMIA_COOKIE_NAME, createJumiaSessionToken(rider.id), {
-      httpOnly: true, secure: true, sameSite: 'lax', maxAge: JUMIA_COOKIE_MAX_AGE, path: '/',
-    });
-    return res;
+    return NextResponse.json({ error: 'Incorrect PIN' }, { status: 401 });
   }
 
   return NextResponse.json({ error: 'Unknown action' }, { status: 400 });

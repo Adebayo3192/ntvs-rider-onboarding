@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Copy, Share2, Check, Link2, X } from 'lucide-react';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 export default function AddRiderModal({ onClose }) {
@@ -17,7 +18,7 @@ export default function AddRiderModal({ onClose }) {
   useEffect(() => {
     setCanShare(typeof navigator !== 'undefined' && !!navigator.share);
 
-    fetch('/api/riders', { method: 'POST' })
+    authedFetch('/api/riders', { method: 'POST' })
       .then((res) => res.json())
       .then((data) => {
         setLink(data.link);

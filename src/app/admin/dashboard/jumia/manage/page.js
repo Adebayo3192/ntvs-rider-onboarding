@@ -2,10 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
-const M_COLS = '1.5fr 1.2fr .8fr .8fr 1fr';
+const M_COLS = '1.5fr 1.2fr .8fr .8fr 1.3fr';
+
+const pinPillBase = { justifySelf: 'start', padding: '4px 11px', borderRadius: 999, fontSize: 10, fontWeight: 800 };
+const PIN_PILLS = {
+  set: { ...pinPillBase, color: '#04763F', background: '#DCF4E6', border: '1px solid #AEE4C6' },
+  locked: { ...pinPillBase, color: '#8A6100', background: '#FDF0D4', border: '1px solid #F5DFA8' },
+  none: { ...pinPillBase, color: '#C13239', background: '#FDECEE', border: '1px solid #F7D2D6' },
+};
 
 const headCell = { fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' };
 
@@ -30,7 +38,7 @@ export default function ManageRidersPage() {
   const fetchRiders = async () => {
     setLoading(true);
     const params = new URLSearchParams({ search });
-    const res = await fetch(`/api/admin/jumia/manage?${params}`);
+    const res = await authedFetch(`/api/admin/jumia/manage?${params}`);
     const data = await res.json();
     setRiders(Array.isArray(data) ? data : []);
     setLoading(false);
@@ -44,23 +52,40 @@ export default function ManageRidersPage() {
   const handleToggle = async (rider) => {
     setBusyId(rider.id);
     setRiders((prev) => prev.map((r) => (r.id === rider.id ? { ...r, enabled: !r.enabled } : r)));
-    await fetch('/api/admin/jumia/toggle', {
+    const res = await authedFetch('/api/admin/jumia/toggle', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ riderId: rider.id, enabled: !rider.enabled }),
     });
+    if (!res.ok) {
+      // Put the switch back — the change didn't save.
+      setRiders((prev) => prev.map((r) => (r.id === rider.id ? { ...r, enabled: rider.enabled } : r)));
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Could not update Jumia access.');
+    }
     setBusyId(null);
   };
 
+  // One action for both cases: clears the PIN, the failed-attempt counter
+  // and the lock. The rider keeps the same private link and creates a new
+  // PIN the next time they open it.
   const handleResetPin = async (rider) => {
-    if (!confirm(`Reset ${rider.name}'s PIN? They'll be asked to create a new one next time.`)) return;
+    const message = rider.locked
+      ? `Unlock ${rider.name} and reset their PIN? They'll create a new PIN the next time they open their link.`
+      : `Reset ${rider.name}'s PIN? They'll be asked to create a new one next time.`;
+    if (!confirm(message)) return;
     setBusyId(rider.id);
-    await fetch('/api/admin/jumia/reset-pin', {
+    const res = await authedFetch('/api/admin/jumia/reset/pin', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ riderId: rider.id }),
     });
-    setRiders((prev) => prev.map((r) => (r.id === rider.id ? { ...r, hasPin: false } : r)));
+    if (res.ok) {
+      setRiders((prev) => prev.map((r) => (r.id === rider.id ? { ...r, hasPin: false, locked: false } : r)));
+    } else {
+      const data = await res.json().catch(() => ({}));
+      alert(data.error || 'Could not reset the PIN.');
+    }
     setBusyId(null);
   };
 
@@ -115,18 +140,16 @@ export default function ManageRidersPage() {
               <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#fff', boxShadow: '0 2px 5px rgba(0,0,0,.18)' }} />
             </div>
 
-            <span style={r.hasPin
-              ? { justifySelf: 'start', padding: '4px 11px', borderRadius: 999, fontSize: 10, fontWeight: 800, color: '#04763F', background: '#DCF4E6', border: '1px solid #AEE4C6' }
-              : { justifySelf: 'start', padding: '4px 11px', borderRadius: 999, fontSize: 10, fontWeight: 800, color: '#C13239', background: '#FDECEE', border: '1px solid #F7D2D6' }}>
-              {r.hasPin ? 'Set' : 'Not Set'}
+            <span style={r.locked ? PIN_PILLS.locked : r.hasPin ? PIN_PILLS.set : PIN_PILLS.none}>
+              {r.locked ? 'Locked' : r.hasPin ? 'Set' : 'Not Set'}
             </span>
 
-            {r.hasPin ? (
+            {r.hasPin || r.locked ? (
               <span
                 onClick={() => busyId !== r.id && handleResetPin(r)}
-                style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', height: 28, padding: '0 12px', borderRadius: 9, background: '#fff', border: '1px solid #DCE6E0', fontSize: 11, fontWeight: 800, color: '#2D4038', cursor: 'pointer' }}
+                style={{ justifySelf: 'start', display: 'inline-flex', alignItems: 'center', height: 28, padding: '0 12px', borderRadius: 9, background: '#fff', border: '1px solid #DCE6E0', fontSize: 11, fontWeight: 800, color: '#2D4038', cursor: busyId === r.id ? 'default' : 'pointer', opacity: busyId === r.id ? 0.6 : 1, whiteSpace: 'nowrap' }}
               >
-                Reset PIN
+                {r.locked ? 'Unlock & Reset PIN' : 'Reset PIN'}
               </span>
             ) : (
               <span style={{ justifySelf: 'start', fontSize: 11.5, fontWeight: 700, color: '#B2BEB7' }}>—</span>

@@ -1,11 +1,28 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getJumiaRider, jumiaUnauthorized } from '@/lib/jumiaAuth';
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function toCount(value) {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
+// The rider id always comes from the verified session cookie (getJumiaRider),
+// never from the URL or the request body — otherwise anyone could read or
+// overwrite another rider's report just by changing an id.
 export async function POST(request) {
-  const { riderId, reportDate, screenshotUrl, small, medium } = await request.json();
+  const rider = await getJumiaRider(request);
+  if (!rider) return jumiaUnauthorized();
 
-  if (!riderId || !reportDate) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+  const body = await request.json().catch(() => null);
+  const { reportDate, screenshotUrl } = body || {};
+  const small = toCount(body?.small);
+  const medium = toCount(body?.medium);
+
+  if (!reportDate || !DATE_RE.test(reportDate) || small === null || medium === null) {
+    return NextResponse.json({ error: 'Missing or invalid fields' }, { status: 400 });
   }
 
   const { data: pricing } = await supabaseAdmin
@@ -21,7 +38,7 @@ export async function POST(request) {
   const { data: existing } = await supabaseAdmin
     .from('jumia_reports')
     .select('id, settled')
-    .eq('rider_id', riderId)
+    .eq('rider_id', rider.id)
     .eq('report_date', reportDate)
     .maybeSingle();
 
@@ -33,7 +50,7 @@ export async function POST(request) {
     .from('jumia_reports')
     .upsert(
       {
-        rider_id: riderId,
+        rider_id: rider.id,
         report_date: reportDate,
         screenshot_url: screenshotUrl,
         small_count: small,
@@ -54,8 +71,10 @@ export async function POST(request) {
 }
 
 export async function GET(request) {
+  const rider = await getJumiaRider(request);
+  if (!rider) return jumiaUnauthorized();
+
   const { searchParams } = new URL(request.url);
-  const riderId = searchParams.get('riderId');
   const reportDate = searchParams.get('date');
 
   const { data: pricing } = await supabaseAdmin
@@ -65,11 +84,11 @@ export async function GET(request) {
     .single();
 
   let existingReport = null;
-  if (riderId && reportDate) {
+  if (reportDate && DATE_RE.test(reportDate)) {
     const { data } = await supabaseAdmin
       .from('jumia_reports')
-      .select('*')
-      .eq('rider_id', riderId)
+      .select('small_count, medium_count, screenshot_url, settled')
+      .eq('rider_id', rider.id)
       .eq('report_date', reportDate)
       .maybeSingle();
     existingReport = data;

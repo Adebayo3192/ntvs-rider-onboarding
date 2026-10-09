@@ -1,5 +1,16 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getCaller, unauthorized, forbidden } from '@/lib/apiAuth';
+
+// Everything here reads or changes a rider's personal details and ID
+// documents, so every handler requires a logged-in admin — a
+// jumia_reviewer account has no business in the riders section.
+async function denyUnlessAdmin(request) {
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+  if (caller.role !== 'admin') return forbidden();
+  return null;
+}
 
 async function signUrl(storedUrl) {
   if (!storedUrl) return null;
@@ -17,6 +28,9 @@ async function signUrl(storedUrl) {
 }
 
 export async function GET(request, { params }) {
+  const denied = await denyUnlessAdmin(request);
+  if (denied) return denied;
+
   const { id } = await params;
 
   const { data: rider, error: riderError } = await supabaseAdmin
@@ -67,6 +81,9 @@ export async function GET(request, { params }) {
 }
 
 export async function PATCH(request, { params }) {
+  const denied = await denyUnlessAdmin(request);
+  if (denied) return denied;
+
   const { id } = await params;
   const body = await request.json();
 
@@ -107,6 +124,9 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+  const denied = await denyUnlessAdmin(request);
+  if (denied) return denied;
+
   const { id } = await params;
 
   const { error } = await supabaseAdmin

@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { authedFetch } from '@/lib/authedFetch';
 import {
   Pencil, Archive, ArchiveRestore, Trash2, X, CheckCircle2, Check,
   User, Phone, Mail, MapPin, IdCard, Car, FileText, Copy, ExternalLink, AlertCircle,
 } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const card = {
@@ -232,7 +233,7 @@ export default function RiderDetailPage() {
   const [toastMessage, setToastMessage] = useState('');
 
   const load = async () => {
-    const res = await fetch(`/api/admin/riders/${id}`);
+    const res = await authedFetch(`/api/admin/riders/${id}`);
     const json = await res.json();
     setData(json);
   };
@@ -270,7 +271,7 @@ export default function RiderDetailPage() {
 
   const handleSave = async () => {
     setSaving(true);
-    await fetch(`/api/admin/riders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
+    await authedFetch(`/api/admin/riders/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editForm) });
     setSaving(false);
     setEditing(false);
     load();
@@ -280,14 +281,14 @@ export default function RiderDetailPage() {
   const handleApprove = async () => {
     if (!confirm('Are you sure you want to approve this rider?')) return;
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'approved' }) });
+    await authedFetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'approved' }) });
     setActing(false);
     goBackWithMessage('Rider approved');
   };
 
   const handleReject = async (reason) => {
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected', reason }) });
+    await authedFetch(`/api/admin/riders/${id}/status`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'rejected', reason }) });
     setActing(false);
     setShowRejectDialog(false);
     goBackWithMessage('Rider rejected');
@@ -297,7 +298,7 @@ export default function RiderDetailPage() {
     const nextArchived = !data.rider.archived;
     if (!confirm(`Are you sure you want to ${nextArchived ? 'archive' : 'unarchive'} this rider?`)) return;
     setActing(true);
-    await fetch(`/api/admin/riders/${id}/archive`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived: nextArchived }) });
+    await authedFetch(`/api/admin/riders/${id}/archive`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archived: nextArchived }) });
     setActing(false);
     goBackWithMessage(nextArchived ? 'Rider archived' : 'Rider unarchived');
   };
@@ -305,7 +306,7 @@ export default function RiderDetailPage() {
   const handleDelete = async () => {
     if (!confirm('This will permanently delete this rider and their guarantor. This cannot be undone. Are you sure?')) return;
     setActing(true);
-    await fetch(`/api/admin/riders/${id}`, { method: 'DELETE' });
+    await authedFetch(`/api/admin/riders/${id}`, { method: 'DELETE' });
     goBackWithMessage('Rider deleted');
   };
 

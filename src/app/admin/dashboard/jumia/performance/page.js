@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #E7ECE8', boxShadow: '0 2px 10px rgba(18,41,31,.04)' };
@@ -30,7 +31,7 @@ export default function PerformancePage() {
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams({ period, search });
-    fetch(`/api/admin/jumia/performance?${params}`)
+    authedFetch(`/api/admin/jumia/performance?${params}`)
       .then((r) => r.json())
       .then((json) => {
         setData(json);

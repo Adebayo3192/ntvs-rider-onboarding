@@ -6,6 +6,25 @@ export async function POST(request, { params }) {
   const { token } = await params;
   const body = await request.json();
 
+  const { data: existing } = await supabaseAdmin
+    .from('riders')
+    .select('id, locked')
+    .eq('onboarding_token', token)
+    .maybeSingle();
+
+  if (!existing) {
+    return NextResponse.json({ error: 'This link is not valid.' }, { status: 404 });
+  }
+
+  // Once an application has been approved or rejected it is locked — the
+  // onboarding link must no longer be able to overwrite the reviewed details.
+  if (existing.locked) {
+    return NextResponse.json(
+      { error: 'This application has already been reviewed and can no longer be changed.' },
+      { status: 403 }
+    );
+  }
+
   const { data: rider, error: riderError } = await supabaseAdmin
     .from('riders')
     .update({
@@ -22,11 +41,21 @@ export async function POST(request, { params }) {
       submitted_at: new Date().toISOString(),
     })
     .eq('onboarding_token', token)
+    // Re-checked in the update itself, so a submit racing an admin's
+    // approve/reject can't slip in after the check above.
+    .not('locked', 'is', true)
     .select('id')
-    .single();
+    .maybeSingle();
 
   if (riderError) {
     return NextResponse.json({ error: riderError.message }, { status: 500 });
+  }
+
+  if (!rider) {
+    return NextResponse.json(
+      { error: 'This application has already been reviewed and can no longer be changed.' },
+      { status: 403 }
+    );
   }
 
   // Remove any existing guarantor for this rider first, so a resubmission

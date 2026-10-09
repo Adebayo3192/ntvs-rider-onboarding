@@ -1,7 +1,12 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getCaller, unauthorized } from '@/lib/apiAuth';
 
-export async function GET() {
+export async function GET(request) {
+  // Read-only: any logged-in admin or jumia_reviewer account.
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+
   const { data: allReports } = await supabaseAdmin
     .from('jumia_reports')
     .select('rider_id, report_date, total_amount, settled, riders(full_name)');

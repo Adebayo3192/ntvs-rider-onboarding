@@ -1,8 +1,13 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
 import { notifyRiderOfDecision } from '@/lib/email';
+import { getCaller, unauthorized, forbidden } from '@/lib/apiAuth';
 
 export async function PATCH(request, { params }) {
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+  if (caller.role !== 'admin') return forbidden();
+
   const { id } = await params;
   const { status, reason } = await request.json();
 

@@ -15,11 +15,6 @@ const CONTACT = {
 };
 const PRIMARY_PHONE = CONTACT.phones[0];
 
-// Jumia Delivery Reports is one shared public link — any onboarded rider
-// uses it by picking their name from a list and entering their own 4-digit
-// PIN, no per-person token needed.
-const JUMIA_REPORTS_ROUTE = '/jumia';
-
 // The one shared login page — both the admin account and the Jumia
 // reviewer account sign in here; the dashboard decides what to show each
 // of them based on role.
@@ -214,9 +209,6 @@ export default function HomePage() {
           </nav>
 
           <div className="header__actions">
-            <Link className="button button--header" href={JUMIA_REPORTS_ROUTE}>
-              Jumia Delivery Reports
-            </Link>
             <Link className="login-link" href={LOGIN_ROUTE}>
               <Icon name="login" size={18} /> Login
             </Link>
@@ -239,9 +231,6 @@ export default function HomePage() {
                 {n.label}
               </a>
             ))}
-            <Link href={JUMIA_REPORTS_ROUTE} onClick={() => setMenuOpen(false)}>
-              Jumia Delivery Reports
-            </Link>
             <Link href={LOGIN_ROUTE} onClick={() => setMenuOpen(false)}>
               <Icon name="login" size={16} /> Login
             </Link>
@@ -272,9 +261,6 @@ export default function HomePage() {
                 <a className="button button--primary" href={`tel:${PRIMARY_PHONE.replace(/\s/g, '')}`}>
                   <Icon name="phone" size={19} /> Call to Become a Rider
                 </a>
-                <Link className="button button--outline" href={JUMIA_REPORTS_ROUTE}>
-                  Jumia Delivery Reports <Icon name="arrow" size={18} />
-                </Link>
               </div>
               <div className="trust-row" aria-label="Our commitments">
                 {[
@@ -395,7 +381,6 @@ export default function HomePage() {
           <div className="footer__column">
             <h3>Quick Links</h3>
             {NAV.map((n) => <a key={n.href} href={n.href}>{n.label}</a>)}
-            <Link href={JUMIA_REPORTS_ROUTE}>Jumia Delivery Reports</Link>
             <Link href={LOGIN_ROUTE}>Login</Link>
           </div>
           <div className="footer__column">

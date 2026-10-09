@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { LayoutDashboard, Users, Bell, ChevronDown, LogOut, Package, Menu, X, Phone, Mail, MapPin } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const CONTACT = {

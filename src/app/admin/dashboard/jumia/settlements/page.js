@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { ChevronDown } from 'lucide-react';
 import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 const SET_COLS = '34px 1.1fr .6fr .7fr .9fr .9fr';
 
@@ -72,7 +72,7 @@ function SettleView({ riderId, onBack }) {
   const load = () => {
     setLoading(true);
     Promise.all([
-      fetch('/api/admin/jumia/manage').then((r) => r.json()),
+      authedFetch('/api/admin/jumia/manage').then((r) => r.json()),
       authedFetch(`/api/admin/jumia/settlements?riderId=${riderId}`).then((r) => r.json()),
     ]).then(([riders, data]) => {
       const found = riders.find((r) => r.id === riderId);

@@ -1,14 +1,31 @@
 import crypto from 'crypto';
 
-const SECRET = process.env.JUMIA_SESSION_SECRET;
 const MAX_AGE_SECONDS = 60 * 60 * 12; // 12-hour session
+const DEV_FALLBACK_SECRET = 'dev-only-insecure-secret';
 
-if (!SECRET) {
-  console.error('JUMIA_SESSION_SECRET is not set in your environment — set it to a long random string before deploying.');
+let warnedAboutFallback = false;
+
+// Checked on first use rather than at import: `next build` imports every
+// route module, so throwing at import would break the build on any machine
+// that doesn't have the secret. In production a missing secret throws here,
+// so no session is ever signed or accepted with a guessable key.
+function getSecret() {
+  const secret = process.env.JUMIA_SESSION_SECRET;
+  if (secret) return secret;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JUMIA_SESSION_SECRET is not set — refusing to sign or verify Jumia sessions without it.');
+  }
+
+  if (!warnedAboutFallback) {
+    console.warn('JUMIA_SESSION_SECRET is not set — using an insecure dev-only fallback. Set it to a long random string before deploying.');
+    warnedAboutFallback = true;
+  }
+  return DEV_FALLBACK_SECRET;
 }
 
 function sign(payload) {
-  return crypto.createHmac('sha256', SECRET || 'dev-only-insecure-secret').update(payload).digest('hex');
+  return crypto.createHmac('sha256', getSecret()).update(payload).digest('hex');
 }
 
 export function createJumiaSessionToken(riderId) {

@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Users, FileText, Package, CircleDollarSign, Clock } from 'lucide-react';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const card = { background: '#fff', borderRadius: 16, border: '1px solid #E7ECE8', boxShadow: '0 2px 10px rgba(18,41,31,.04)' };
@@ -140,7 +141,7 @@ export default function OverviewPage() {
   const [data, setData] = useState(null);
 
   useEffect(() => {
-    fetch('/api/admin/jumia/overview').then((r) => r.json()).then(setData);
+    authedFetch('/api/admin/jumia/overview').then((r) => (r.ok ? r.json() : null)).then((d) => d && setData(d));
   }, []);
 
   if (!data) {

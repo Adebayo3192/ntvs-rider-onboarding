@@ -1,7 +1,12 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getCaller, unauthorized, forbidden } from '@/lib/apiAuth';
 
 export async function GET(request) {
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+  if (caller.role !== 'admin') return forbidden();
+
   const { searchParams } = new URL(request.url);
   const search = searchParams.get('search') || '';
   const status = searchParams.get('status') || 'all';

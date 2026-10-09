@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Users, Clock, CheckCircle2, XCircle, ArrowUpRight, TrendingUp, Zap, Link2, PlusCircle, BarChart3, Calendar } from 'lucide-react';
 import AddRiderModal from './riders/AddRiderModal';
 import { FONT, COLORS } from '@/lib/theme';
+import { authedFetch } from '@/lib/authedFetch';
 
 const ACCENT = COLORS.accent;
 
@@ -56,15 +57,15 @@ export default function DashboardHome() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   useEffect(() => {
-    fetch('/api/admin/summary')
-      .then((res) => res.json())
-      .then((data) => setCounts(data));
+    authedFetch('/api/admin/summary')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setCounts(data));
 
-    fetch('/api/admin/riders?search=&status=all&archived=false')
+    authedFetch('/api/admin/riders?search=&status=all&archived=false')
       .then((res) => res.json())
       .then((data) => setActivity(Array.isArray(data) ? data.slice(0, 5) : []));
 
-    fetch('/api/admin/stats/weekly')
+    authedFetch('/api/admin/stats/weekly')
       .then((res) => res.json())
       .then((data) => setWeekly(Array.isArray(data) ? data : []));
   }, []);

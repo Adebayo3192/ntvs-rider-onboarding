@@ -5,7 +5,7 @@ import { Search, Eye, X, Check, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 const R_COLS = '1.3fr .85fr .5fr .55fr .85fr .95fr .85fr .75fr .8fr';
 

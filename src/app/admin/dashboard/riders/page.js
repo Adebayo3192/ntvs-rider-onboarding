@@ -4,8 +4,9 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Search, Users, ChevronDown, Phone, MapPin, Calendar, Eye, Pencil, MoreVertical, Circle, Copy, Check } from 'lucide-react';
 import AddRiderModal from './AddRiderModal';
+import { authedFetch } from '@/lib/authedFetch';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 const ACCENT = '#0FA45C';
 
 const PILLS = {
@@ -67,10 +68,37 @@ export default function RidersPage() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const [copiedLinkId, setCopiedLinkId] = useState(null);
+
+  const handleCopyJumiaLink = async (id) => {
+    const linkPromise = authedFetch(`/api/admin/riders/${id}/jumia-link`, { method: 'POST' }).then(async (res) => {
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) throw new Error(data.error || 'Could not get the Jumia link.');
+      return `${window.location.origin}/jumia/t/${data.token}`;
+    });
+
+    try {
+      // Safari only allows a clipboard write that starts inside the click
+      // itself, so hand it a promise for the link instead of awaiting the
+      // request first.
+      if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'text/plain': linkPromise.then((link) => new Blob([link], { type: 'text/plain' })) }),
+        ]);
+      } else {
+        await navigator.clipboard.writeText(await linkPromise);
+      }
+      setCopiedLinkId(id);
+      setTimeout(() => setCopiedLinkId(null), 1500);
+    } catch (err) {
+      alert(err.message || 'Could not copy the Jumia link.');
+    }
+  };
+
   const fetchRiders = async () => {
     setLoading(true);
     const params = new URLSearchParams({ search, status, archived: viewArchived });
-    const res = await fetch(`/api/admin/riders?${params}`);
+    const res = await authedFetch(`/api/admin/riders?${params}`);
     const data = await res.json();
     setRiders(Array.isArray(data) ? data : []);
     setLoading(false);
@@ -82,9 +110,9 @@ export default function RidersPage() {
   }, [search, status, viewArchived]);
 
   useEffect(() => {
-    fetch('/api/admin/summary')
-      .then((res) => res.json())
-      .then((data) => setCounts(data));
+    authedFetch('/api/admin/summary')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setCounts(data));
   }, []);
 
   const stats = [
@@ -212,7 +240,7 @@ export default function RidersPage() {
       {/* Table */}
       <div style={card}>
       <div className="ntvl-table-scroll">
-        <div className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '10px 16px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
+        <div className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.6fr', gap: 10, padding: '10px 16px', background: '#F5F9F6', borderBottom: '1px solid #E7ECE8' }}>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Name</span>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Phone</span>
           <span style={{ fontSize: 11, fontWeight: 800, color: '#5D6C65', letterSpacing: '.2px' }}>Status</span>
@@ -233,7 +261,7 @@ export default function RidersPage() {
           const av = tintFor(r.id);
           const date = r.submitted_at ? new Date(r.submitted_at) : null;
           return (
-            <div key={r.id} className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.15fr', gap: 10, padding: '9px 16px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
+            <div key={r.id} className="ntvl-table-track" style={{ display: 'grid', gridTemplateColumns: '1.7fr 1.15fr .95fr 1.05fr 1.6fr', gap: 10, padding: '9px 16px', alignItems: 'center', borderBottom: '1px solid #F1F4F2' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9, minWidth: 0 }}>
                 <div style={{ flex: 'none', width: 32, height: 32, borderRadius: '50%', background: av.tint, color: av.ink, fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {initials(r.full_name)}
@@ -269,13 +297,23 @@ export default function RidersPage() {
                 </span>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                 <Link
                   href={`/admin/dashboard/riders/${r.id}`}
                   style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, background: '#fff', border: '1px solid #DCE6E0', fontFamily: FONT, fontSize: 11, fontWeight: 800, color: '#2D4038', cursor: 'pointer', textDecoration: 'none' }}
                 >
                   <Eye size={12} color={ACCENT} /> View
                 </Link>
+                {r.status === 'approved' && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyJumiaLink(r.id)}
+                    title="Copy this rider's private Jumia link"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: 5, height: 30, padding: '0 11px', borderRadius: 9, background: '#fff', border: '1px solid #DCE6E0', fontFamily: FONT, fontSize: 11, fontWeight: 800, color: '#2D4038', cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    {copiedLinkId === r.id ? <Check size={12} color={ACCENT} /> : <Copy size={12} color={ACCENT} />} Jumia Link
+                  </button>
+                )}
               </div>
             </div>
           );

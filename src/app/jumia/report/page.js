@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { Camera, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 const mLabel = { display: 'block', fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,.82)', marginBottom: 6 };
 const mField = { display: 'flex', alignItems: 'center', gap: 10, height: 44, padding: '0 13px', borderRadius: 13, background: 'rgba(255,255,255,.07)', border: '1px solid rgba(255,255,255,.14)', boxSizing: 'border-box' };
@@ -19,12 +18,11 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function ReportContent() {
-  const params = useSearchParams();
-  const riderId = params.get('rider');
-  const router = useRouter();
-
+export default function ReportPage() {
+  // The rider comes from the signed session cookie (set after the PIN
+  // check on their private link) — never from the URL.
   const [rider, setRider] = useState(null);
+  const [expired, setExpired] = useState(false);
   const [date, setDate] = useState(todayStr());
   const [small, setSmall] = useState(0);
   const [medium, setMedium] = useState(0);
@@ -37,17 +35,26 @@ function ReportContent() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!riderId) return;
-    fetch('/api/jumia/riders').then((r) => r.json()).then((riders) => {
-      setRider(riders.find((r) => r.id === riderId) || null);
-    });
-  }, [riderId]);
+    fetch('/api/jumia/session/me')
+      .then(async (res) => {
+        if (!res.ok) {
+          setExpired(true);
+          return;
+        }
+        setRider(await res.json());
+      })
+      .catch(() => setExpired(true));
+  }, []);
 
   useEffect(() => {
-    if (!riderId || !date) return;
-    fetch(`/api/jumia/report/submit?riderId=${riderId}&date=${date}`)
-      .then((r) => r.json())
-      .then((data) => {
+    if (!rider || !date) return;
+    fetch(`/api/jumia/report/submit?date=${date}`)
+      .then(async (res) => {
+        if (res.status === 401) {
+          setExpired(true);
+          return;
+        }
+        const data = await res.json();
         setPricing(data.pricing);
         if (data.existingReport) {
           setSmall(data.existingReport.small_count);
@@ -61,23 +68,32 @@ function ReportContent() {
           setPreview(null);
         }
       });
-  }, [riderId, date]);
+  }, [rider, date]);
 
   const total = small * pricing.small + medium * pricing.medium;
 
   const uploadFile = async (file) => {
-    if (!file || !riderId) return;
+    if (!file || !rider) return;
     setPreview(URL.createObjectURL(file));
     setUploading(true);
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('token', `jumia-${riderId}`);
 
+    // No rider id is sent — /api/upload identifies the rider from the
+    // session cookie.
     const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     setUploading(false);
-    if (data.url) setScreenshotUrl(data.url);
+    if (res.status === 401) {
+      setExpired(true);
+    } else if (data.url) {
+      setError('');
+      setScreenshotUrl(data.url);
+    } else {
+      setPreview(screenshotUrl || null);
+      setError(data.error || 'Could not upload that photo. Please try again.');
+    }
   };
 
   const handleSubmit = async () => {
@@ -86,16 +102,33 @@ function ReportContent() {
     const res = await fetch('/api/jumia/report/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ riderId, reportDate: date, screenshotUrl, small, medium }),
+      body: JSON.stringify({ reportDate: date, screenshotUrl, small, medium }),
     });
     setSubmitting(false);
     if (res.ok) {
       setSubmitted(true);
+    } else if (res.status === 401) {
+      setExpired(true);
     } else {
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       setError(data.error || 'Something went wrong.');
     }
   };
+
+  if (expired) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(180deg,#0E2A1D 0%,#123522 55%,#173D28 100%)', fontFamily: FONT, color: '#fff', padding: '40px 28px', textAlign: 'center' }}>
+        <img src="/logo.png" alt="NTVL" style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 18 }} />
+        <h1 style={{ fontSize: 20, fontWeight: 800, marginBottom: 9 }}>Session expired</h1>
+        <p style={{ color: 'rgba(255,255,255,.7)', fontSize: 13, lineHeight: 1.5, maxWidth: 300 }}>
+          Open your private link again and enter your PIN to continue.
+        </p>
+        <p style={{ color: 'rgba(255,255,255,.5)', fontSize: 11.5, marginTop: 14, maxWidth: 300 }}>
+          Don&apos;t have your link? Ask your admin to send it to you.
+        </p>
+      </div>
+    );
+  }
 
   if (!rider) {
     return (
@@ -119,10 +152,10 @@ function ReportContent() {
           You can update this report until it's settled by your shop.
         </p>
         <button
-          onClick={() => router.push('/jumia')}
+          onClick={() => setSubmitted(false)}
           style={{ marginTop: 24, height: 42, padding: '0 22px', border: 'none', borderRadius: 13, background: '#05C16A', color: '#06281A', fontFamily: FONT, fontSize: 13, fontWeight: 800, cursor: 'pointer' }}
         >
-          Done
+          Back to report
         </button>
       </div>
     );
@@ -132,9 +165,6 @@ function ReportContent() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'linear-gradient(180deg,#0E2A1D 0%,#123522 55%,#173D28 100%)', fontFamily: FONT, color: '#fff' }}>
       <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', padding: '20px 20px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div onClick={() => router.push('/jumia')} style={{ flex: 'none', width: 34, height: 34, borderRadius: '50%', background: 'rgba(255,255,255,.1)', border: '1px solid rgba(255,255,255,.16)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M19 12H6M11.5 6.5L5 12l6.5 5.5" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>
-          </div>
           <span style={{ flex: 1, minWidth: 0, fontSize: 16, fontWeight: 800, letterSpacing: '-.3px' }}>Daily Report</span>
         </div>
 
@@ -240,13 +270,5 @@ function ReportContent() {
         </button>
       </div>
     </div>
-  );
-}
-
-export default function ReportPage() {
-  return (
-    <Suspense fallback={null}>
-      <ReportContent />
-    </Suspense>
   );
 }

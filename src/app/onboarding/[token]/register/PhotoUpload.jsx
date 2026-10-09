@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Camera, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
-const FONT = "'Plus Jakarta Sans', system-ui, sans-serif";
+const FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 const uploadBtn = {
   flex: 1, minWidth: 0, height: 56, display: 'flex', flexDirection: 'column',
@@ -17,10 +17,12 @@ export default function PhotoUpload({ token, label, onUploaded, error }) {
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   const uploadFile = async (file) => {
     if (!file) return;
 
+    setUploadError('');
     setPreview(URL.createObjectURL(file));
     setFileName(file.name);
     setFileSize((file.size / (1024 * 1024)).toFixed(1) + ' MB');
@@ -31,11 +33,16 @@ export default function PhotoUpload({ token, label, onUploaded, error }) {
     formData.append('token', token);
 
     const res = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
 
     setUploading(false);
     if (data.url) {
       onUploaded(data.url);
+    } else {
+      // Rejected (too large, not an image, link no longer valid) — clear
+      // the preview so it doesn't look like the photo was accepted.
+      setPreview(null);
+      setUploadError(data.error || 'Could not upload that photo. Please try again.');
     }
   };
 
@@ -88,6 +95,10 @@ export default function PhotoUpload({ token, label, onUploaded, error }) {
           <span style={{ width: 14, height: 14, borderRadius: '50%', background: '#FF6B6B', color: '#3B0D0D', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>!</span>
           <span style={{ fontSize: 12, fontWeight: 600, color: '#FF8E8E' }}>Please upload this photo</span>
         </div>
+      )}
+
+      {uploadError && (
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#FF8E8E' }}>{uploadError}</span>
       )}
 
       <div style={{ display: 'flex', gap: 10 }}>

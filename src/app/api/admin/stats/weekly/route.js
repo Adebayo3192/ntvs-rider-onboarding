@@ -1,7 +1,12 @@
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { NextResponse } from 'next/server';
+import { getCaller, unauthorized, forbidden } from '@/lib/apiAuth';
 
-export async function GET() {
+export async function GET(request) {
+  const caller = await getCaller(request);
+  if (!caller) return unauthorized();
+  if (caller.role !== 'admin') return forbidden();
+
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
   sevenDaysAgo.setHours(0, 0, 0, 0);
